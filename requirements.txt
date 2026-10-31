@@ -1,16 +1,26 @@
 # ========================================================
-# Production Runtime Dependencies for ANEMEIA (Vercel / Cloud)
+# Complete Dependencies for ANEMEIA (Web App + ML Analysis)
 # ========================================================
 
-# CPU-optimized Deep Learning Framework (eliminates ~1.8 GB of NVIDIA GPU/CUDA binaries)
-tensorflow-cpu>=2.15.0
+# Deep Learning Framework
+tensorflow>=2.13.0
 
-# Headless Computer Vision (eliminates ~100 MB of GUI/X11/Qt libraries)
-opencv-python-headless>=4.8.0
+# Computer Vision & Image Processing
+opencv-python>=4.8.0
+Pillow>=10.0.0
+matplotlib>=3.7.0
 
-# Numerical Computing
+# Scientific Computing & Machine Learning Analysis
 numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+openpyxl>=3.1.0
 
 # Web Application Framework
 flask>=2.3.0
 werkzeug>=2.3.0
+requests>=2.28.0
+
+# Configuration & Testing
+PyYAML>=6.0
+pytest>=7.4.0
