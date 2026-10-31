@@ -52,14 +52,10 @@ class ScreeningHistory(db.Model):
     __tablename__ = "screening_history"
 
     id = db.Column(db.BigInteger().with_variant(db.Integer, "sqlite"), primary_key=True, autoincrement=True)
-    user_id = db.Column(
-        db.BigInteger().with_variant(db.Integer, "sqlite"),
-        db.ForeignKey("users.id", ondelete="SET NULL"),
-        nullable=True,
-        index=True,
-    )
+    patient_name = db.Column(db.String(120), nullable=True, default="Anonymous Patient", index=True)
     patient_age = db.Column(db.Integer, nullable=True)
     patient_gender = db.Column(db.String(20), nullable=True)
+    user_id = db.Column(db.BigInteger().with_variant(db.Integer, "sqlite"), db.ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     original_image_path = db.Column(db.String(255), nullable=False)
     segmented_image_path = db.Column(db.String(255), nullable=False)
     extracted_roi_path = db.Column(db.String(255), nullable=False)
@@ -86,7 +82,7 @@ class ScreeningHistory(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
-            "user_id": self.user_id,
+            "patient_name": self.patient_name or "Anonymous Patient",
             "patient_age": self.patient_age,
             "patient_gender": self.patient_gender,
             "original_image_path": self.original_image_path,

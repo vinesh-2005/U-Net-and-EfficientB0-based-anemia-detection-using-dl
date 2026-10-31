@@ -143,9 +143,10 @@ def save_screening(
     confidence_score: float,
     threshold: float,
     tissue_quality: str = "accepted",
-    user_id: int | None = None,
+    patient_name: str | None = None,
     patient_age: int | None = None,
     patient_gender: str | None = None,
+    user_id: int | None = None,
     model_name: str = "EfficientNet-B0 + U-Net",
     upload_dir: str = None,
 ) -> tuple[ScreeningHistory | None, str | None]:
@@ -171,6 +172,10 @@ def save_screening(
     roi_rel = f"screenings/{screening_uuid}/roi.jpg"
     gradcam_rel = f"screenings/{screening_uuid}/gradcam.jpg" if gradcam_bgr is not None else None
 
+    clean_name = (patient_name or "").strip()
+    if not clean_name:
+        clean_name = "Anonymous Patient"
+
     try:
         # Save images to disk
         cv2.imwrite(os.path.join(target_dir, "original.jpg"), original_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
@@ -188,9 +193,10 @@ def save_screening(
 
         # Create database record
         record = ScreeningHistory(
-            user_id=user_id,
+            patient_name=clean_name,
             patient_age=patient_age if patient_age else None,
             patient_gender=patient_gender.capitalize() if patient_gender else None,
+            user_id=user_id,
             original_image_path=orig_rel,
             segmented_image_path=mask_rel,
             extracted_roi_path=roi_rel,
@@ -212,18 +218,15 @@ def save_screening(
         return None, f"Database error saving screening: {str(e)}"
 
 
-def get_user_screenings(user_id: int | None, page: int = 1, per_page: int = 15):
+def get_all_screenings(page: int = 1, per_page: int = 15, search: str | None = None):
     """
-    Retrieves paginated screening history for a given user.
-    If user_id is None, returns recent guest screenings or empty list.
+    Retrieves paginated screening history for all patients.
+    Supports optional case-insensitive search by patient name.
     """
     try:
         query = ScreeningHistory.query
-        if user_id is not None:
-            query = query.filter_by(user_id=user_id)
-        else:
-            # Guest sessions only see unassigned screenings
-            query = query.filter(ScreeningHistory.user_id.is_(None))
+        if search:
+            query = query.filter(ScreeningHistory.patient_name.ilike(f"%{search.strip()}%"))
 
         query = query.order_by(ScreeningHistory.created_at.desc())
         return query.paginate(page=page, per_page=per_page, error_out=False)
@@ -232,21 +235,19 @@ def get_user_screenings(user_id: int | None, page: int = 1, per_page: int = 15):
         return None
 
 
+def get_user_screenings(user_id: int | None = None, page: int = 1, per_page: int = 15, search: str | None = None):
+    """Backwards-compatible alias for get_all_screenings."""
+    return get_all_screenings(page=page, per_page=per_page, search=search)
+
+
 def get_screening_by_id(screening_id: int, user_id: int | None = None) -> tuple[ScreeningHistory | None, str | None]:
     """
-    Retrieves a single screening record with user-specific access control.
-    Prevents unauthorized users from accessing other users' records.
+    Retrieves a single screening record by primary key.
     """
     try:
         record = db.session.get(ScreeningHistory, screening_id)
         if not record:
             return None, "Screening record not found."
-
-        # Access control check
-        if record.user_id is not None:
-            if user_id is None or record.user_id != user_id:
-                return None, "Access denied. You do not have permission to view this screening record."
-
         return record, None
     except Exception as e:
         logger.exception("Error retrieving screening record:")

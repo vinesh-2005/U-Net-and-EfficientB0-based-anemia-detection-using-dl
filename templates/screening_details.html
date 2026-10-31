@@ -416,13 +416,7 @@
             <a href="/" class="nav-link">AI Screening</a>
             <a href="/#awarenessSection" class="nav-link">Nutritional Guidance</a>
             <a href="/dashboard" class="nav-link">Model Metrics</a>
-            <a href="/history" class="nav-link">Screening History</a>
-            {% if current_user %}
-            <span class="nav-user-badge">👤 {{ current_user.full_name.split()[0] }}</span>
-            <a href="/logout" class="nav-btn-outline">Logout</a>
-            {% else %}
-            <a href="/login" class="nav-link">Login</a>
-            {% endif %}
+            <a href="/history" class="nav-link">Patient History</a>
         </div>
     </nav>
 
@@ -456,13 +450,14 @@
         <!-- DEMOGRAPHICS & STATUS BANNER -->
         <div class="results-header-banner">
             <div class="patient-demographics">
-                <div>Recorded: <strong>{{ screening.created_at.strftime("%B %d, %Y at %I:%M %p") if screening.created_at else 'N/A' }}</strong></div>
+                <div>Patient: <strong>{{ screening.patient_name or 'Anonymous Patient' }}</strong></div>
                 {% if screening.patient_age %}
                 <div>Age: <strong>{{ screening.patient_age }}</strong> yrs</div>
                 {% endif %}
                 {% if screening.patient_gender %}
                 <div>Gender: <strong>{{ screening.patient_gender }}</strong></div>
                 {% endif %}
+                <div>Recorded: <strong>{{ screening.created_at.strftime("%B %d, %Y at %I:%M %p") if screening.created_at else 'N/A' }}</strong></div>
             </div>
 
             {% if screening.is_anemic %}

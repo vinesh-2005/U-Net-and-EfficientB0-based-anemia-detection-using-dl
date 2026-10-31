@@ -997,14 +997,7 @@
             <a href="/" class="nav-link active">AI Screening</a>
             <a href="#awarenessSection" class="nav-link">Nutritional Guidance</a>
             <a href="/dashboard" class="nav-link">Model Metrics</a>
-            <a href="/history" class="nav-link">Screening History</a>
-            {% if current_user %}
-            <span class="nav-user-badge">👤 {{ current_user.full_name.split()[0] }}</span>
-            <a href="/logout" class="nav-btn-outline">Logout</a>
-            {% else %}
-            <a href="/login" class="nav-link">Login</a>
-            <a href="/register" class="nav-btn-solid">Register</a>
-            {% endif %}
+            <a href="/history" class="nav-link">Patient History</a>
         </div>
     </nav>
 
@@ -1085,8 +1078,13 @@
                     </div>
                 </div>
 
-                <!-- PATIENT DEMOGRAPHICS (AGE & GENDER) -->
+                <!-- PATIENT DEMOGRAPHICS (NAME, GENDER, AGE) -->
                 <div class="inputs-column">
+                    <div class="input-group">
+                        <label for="patientNameInput">Patient Full Name <span class="hint">Patient Name or ID</span></label>
+                        <input type="text" name="patient_name" id="patientNameInput" placeholder="e.g. Eleanor Vance" value="{{ patient_name or '' }}" autocomplete="off">
+                    </div>
+
                     <div class="input-group">
                         <label for="sexSelect">Gender / Biological Sex <span class="hint">Optional Demographics</span></label>
                         <select name="sex" id="sexSelect">
@@ -1134,13 +1132,16 @@
         <!-- DEMOGRAPHICS & STATUS BANNER -->
         <div class="results-header-banner">
             <div class="patient-demographics">
+                {% if image_result.patient_name and image_result.patient_name != 'Anonymous Patient' %}
+                <div>Patient: <strong>{{ image_result.patient_name }}</strong></div>
+                {% endif %}
                 {% if image_result.age %}
                 <div>Age: <strong>{{ image_result.age }}</strong> <span>yrs</span></div>
                 {% endif %}
                 {% if image_result.sex %}
                 <div>Gender: <strong>{{ image_result.sex }}</strong></div>
                 {% endif %}
-                {% if not image_result.age and not image_result.sex %}
+                {% if (not image_result.patient_name or image_result.patient_name == 'Anonymous Patient') and not image_result.age and not image_result.sex %}
                 <div>Assessment: <strong>Conjunctival Pallor Analysis</strong></div>
                 {% endif %}
             </div>

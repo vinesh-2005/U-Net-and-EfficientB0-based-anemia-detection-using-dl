@@ -6,6 +6,7 @@ from .service import (
     register_user,
     authenticate_user,
     save_screening,
+    get_all_screenings,
     get_user_screenings,
     get_screening_by_id,
 )
@@ -20,6 +21,7 @@ __all__ = [
     "register_user",
     "authenticate_user",
     "save_screening",
+    "get_all_screenings",
     "get_user_screenings",
     "get_screening_by_id",
     "get_db_uri",

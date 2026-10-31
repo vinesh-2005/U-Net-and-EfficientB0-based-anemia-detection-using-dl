@@ -28,12 +28,10 @@ from src.explainability.gradcam import GradCAMExplainer
 from src.database import (
     init_db,
     check_db_connection,
-    register_user,
-    authenticate_user,
     save_screening,
+    get_all_screenings,
     get_user_screenings,
     get_screening_by_id,
-    User,
     ScreeningHistory,
 )
 
@@ -66,20 +64,11 @@ app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 db_initialized, db_status_msg = init_db(app, base_dir=BASE_DIR)
 
 
-# Global template context processor: injects user and database health
+# Global template context processor: injects database health
 @app.context_processor
 def inject_context():
-    user_id = session.get("user_id")
-    current_user = None
-    if user_id:
-        try:
-            from src.database.models import db
-            current_user = db.session.get(User, user_id)
-        except Exception:
-            current_user = None
     is_db_connected, db_err = check_db_connection()
     return {
-        "current_user": current_user,
         "db_connected": is_db_connected,
         "db_err": db_err,
     }
@@ -253,6 +242,7 @@ def index():
     result = None
     image_result = None
     image_score = None
+    patient_name = None
     sex = None
     age = None
     error = None
@@ -269,6 +259,7 @@ def index():
     if request.method == "POST":
         try:
             file = request.files.get("eye_image")
+            patient_name = request.form.get("patient_name", "").strip()
             age = request.form.get("age", "").strip()
             sex = request.form.get("sex", "").strip()
 
@@ -284,7 +275,7 @@ def index():
 
             import time
             t_start = time.time()
-            print(f"\n[AI Pipeline] Received image: {file.filename} (Age: {age or 'N/A'}, Sex: {sex or 'N/A'})")
+            print(f"\n[AI Pipeline] Received image: {file.filename} (Patient: {patient_name or 'Anonymous'}, Age: {age or 'N/A'}, Sex: {sex or 'N/A'})")
 
             # Read and decode image directly in memory (avoids Windows file lock issues)
             file_bytes = file.read()
@@ -347,6 +338,7 @@ def index():
 
             is_anemic = image_score >= CLASSIFIER_THRESHOLD
             image_result = {
+                "patient_name": patient_name if patient_name else "Anonymous Patient",
                 "is_anemic": is_anemic,
                 "score": image_score,
                 "score_percentage": image_score * 100.0,
@@ -401,7 +393,7 @@ def index():
                         confidence_score=image_score,
                         threshold=CLASSIFIER_THRESHOLD,
                         tissue_quality=quality.get("quality_status", "accepted"),
-                        user_id=session.get("user_id"),
+                        patient_name=patient_name if patient_name else "Anonymous Patient",
                         patient_age=int(age) if age and str(age).isdigit() else None,
                         patient_gender=sex if sex else None,
                         model_name="EfficientNet-B0 + U-Net",
@@ -409,7 +401,7 @@ def index():
                     )
                     if record:
                         saved_screening_id = record.id
-                        print(f"[Database] Screening #{saved_screening_id} saved successfully to MySQL.")
+                        print(f"[Database] Screening #{saved_screening_id} for '{patient_name or 'Anonymous'}' saved successfully to MySQL.")
                     elif save_err:
                         db_notice = f"Notice: Screening completed, but could not save to database: {save_err}"
                         print(f"[Database Save Error] {save_err}")
@@ -428,6 +420,7 @@ def index():
         result=result,
         image_result=image_result,
         image_score=image_score,
+        patient_name=patient_name,
         sex=sex,
         age=age,
         error=error,
@@ -444,77 +437,13 @@ def index():
 
 
 # --------------------------------------------------
-# User Management & Authentication routes
-# --------------------------------------------------
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if session.get("user_id"):
-        return redirect(url_for("index"))
-
-    error = None
-    if request.method == "POST":
-        full_name = request.form.get("full_name", "").strip()
-        email = request.form.get("email", "").strip()
-        password = request.form.get("password", "")
-        phone_number = request.form.get("phone_number", "").strip()
-
-        is_connected, db_err = check_db_connection()
-        if not is_connected:
-            error = f"Database is currently offline. Cannot register: {db_err or ''}"
-        else:
-            user, err = register_user(full_name, email, password, phone_number)
-            if user:
-                session["user_id"] = user.id
-                session["user_name"] = user.full_name
-                return redirect(url_for("index"))
-            else:
-                error = err
-
-    return render_template("register.html", error=error)
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if session.get("user_id"):
-        return redirect(url_for("index"))
-
-    error = None
-    if request.method == "POST":
-        email = request.form.get("email", "").strip()
-        password = request.form.get("password", "")
-
-        is_connected, db_err = check_db_connection()
-        if not is_connected:
-            error = f"Database is currently offline. Cannot sign in: {db_err or ''}"
-        else:
-            user, err = authenticate_user(email, password)
-            if user:
-                session["user_id"] = user.id
-                session["user_name"] = user.full_name
-                next_page = request.args.get("next")
-                return redirect(next_page or url_for("index"))
-            else:
-                error = err
-
-    return render_template("login.html", error=error)
-
-
-@app.route("/logout")
-def logout():
-    session.pop("user_id", None)
-    session.pop("user_name", None)
-    return redirect(url_for("index"))
-
-
-# --------------------------------------------------
 # Screening History & Details routes
 # --------------------------------------------------
 
 @app.route("/history")
 def history():
-    user_id = session.get("user_id")
     page = request.args.get("page", 1, type=int)
+    search = request.args.get("q", "").strip()
 
     is_connected, db_err = check_db_connection()
     if not is_connected:
@@ -522,24 +451,24 @@ def history():
             "history.html",
             screenings=[],
             pagination=None,
+            search=search,
             db_error=f"Database is currently offline. {db_err or ''}",
         )
 
-    pagination = get_user_screenings(user_id=user_id, page=page, per_page=10)
+    pagination = get_all_screenings(page=page, per_page=12, search=search if search else None)
     screenings = pagination.items if pagination else []
 
     return render_template(
         "history.html",
         screenings=screenings,
         pagination=pagination,
+        search=search,
         db_error=None,
     )
 
 
 @app.route("/history/<int:screening_id>")
 def screening_details(screening_id):
-    user_id = session.get("user_id")
-
     is_connected, db_err = check_db_connection()
     if not is_connected:
         return render_template(
@@ -548,7 +477,7 @@ def screening_details(screening_id):
             error=f"Database is currently offline: {db_err or 'Cannot load screening details.'}",
         )
 
-    record, err = get_screening_by_id(screening_id, user_id=user_id)
+    record, err = get_screening_by_id(screening_id)
     return render_template(
         "screening_details.html",
         screening=record,
@@ -561,10 +490,9 @@ def screening_image(screening_id, img_type):
     if img_type not in ("original", "mask", "roi", "gradcam"):
         abort(404)
 
-    user_id = session.get("user_id")
-    record, err = get_screening_by_id(screening_id, user_id=user_id)
+    record, err = get_screening_by_id(screening_id)
     if err or not record:
-        abort(403)
+        abort(404)
 
     path_map = {
         "original": record.original_image_path,

@@ -25,9 +25,10 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- Step 3: Screening History Table (AI Prediction & Segmentation Audit Trail)
 CREATE TABLE IF NOT EXISTS `screening_history` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
-    `user_id` BIGINT DEFAULT NULL,
+    `patient_name` VARCHAR(120) DEFAULT 'Anonymous Patient',
     `patient_age` INT DEFAULT NULL,
     `patient_gender` VARCHAR(20) DEFAULT NULL,
+    `user_id` BIGINT DEFAULT NULL,
     `original_image_path` VARCHAR(255) NOT NULL,
     `segmented_image_path` VARCHAR(255) NOT NULL,
     `extracted_roi_path` VARCHAR(255) NOT NULL,
@@ -38,10 +39,6 @@ CREATE TABLE IF NOT EXISTS `screening_history` (
     `model_name` VARCHAR(100) NOT NULL DEFAULT 'EfficientNet-B0 + U-Net',
     `tissue_quality` VARCHAR(50) DEFAULT 'accepted',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT `fk_screening_user`
-        FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-        ON DELETE SET NULL
-        ON UPDATE CASCADE,
-    INDEX `idx_screening_user_id` (`user_id`),
+    INDEX `idx_screening_name` (`patient_name`),
     INDEX `idx_screening_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
