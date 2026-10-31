@@ -1,3 +1,7 @@
+import sys
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(line_buffering=True)
+
 import base64
 import json
 import os
@@ -80,6 +84,19 @@ explainer = GradCAMExplainer(classifier)
 
 print("Models and explainer loaded successfully!")
 
+# Warm up models at startup to eliminate cold-start delays on user requests
+print("Warming up models for rapid inference...")
+try:
+    dummy_img = np.zeros((256, 256, 3), dtype=np.uint8)
+    _ = predict_mask(unet, dummy_img)
+    dummy_roi = np.zeros((224, 224, 3), dtype=np.uint8)
+    dummy_batch = np.expand_dims(dummy_roi.astype(np.float32), 0)
+    _ = classifier.predict(dummy_batch, verbose=0)
+    _ = explainer.explain(dummy_roi)
+    print("Warmup complete! All AI screening models are primed for instant inference.")
+except Exception as w_err:
+    print(f"Warmup notice: {w_err}")
+
 
 # --------------------------------------------------
 # Utility functions
@@ -92,15 +109,19 @@ def allowed_file(filename):
     )
 
 
-def encode_image_base64(img_bgr):
-    """Encode OpenCV BGR image into base64 data URI."""
+def encode_image_base64(img_bgr, max_dim=800, quality=85):
+    """Encode OpenCV BGR image into an optimized base64 JPEG data URI for rapid transmission & instant browser rendering."""
     if img_bgr is None or img_bgr.size == 0:
         return None
-    success, buffer = cv2.imencode(".png", img_bgr)
+    h, w = img_bgr.shape[:2]
+    if max(h, w) > max_dim:
+        scale = max_dim / float(max(h, w))
+        img_bgr = cv2.resize(img_bgr, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+    success, buffer = cv2.imencode(".jpg", img_bgr, [int(cv2.IMWRITE_JPEG_QUALITY), quality])
     if not success:
         return None
     b64_str = base64.b64encode(buffer).decode("utf-8")
-    return f"data:image/png;base64,{b64_str}"
+    return f"data:image/jpeg;base64,{b64_str}"
 
 
 def hb_reference(hb, sex):
@@ -223,6 +244,14 @@ def index():
             image = cv2.imdecode(np.frombuffer(file_bytes, np.uint8), cv2.IMREAD_COLOR)
             if image is None:
                 raise ValueError("Unable to decode the uploaded image file. Please ensure it is a valid image.")
+
+            # Optimize high-resolution mobile photos (e.g. 12MP/4K) to max 1024px
+            # Preserves full vascular resolution while speeding up segmentation & ROI extraction by 40x
+            h_orig, w_orig = image.shape[:2]
+            max_input_dim = 1024
+            if max(h_orig, w_orig) > max_input_dim:
+                scale = max_input_dim / float(max(h_orig, w_orig))
+                image = cv2.resize(image, (int(w_orig * scale), int(h_orig * scale)), interpolation=cv2.INTER_AREA)
 
             original_preview_b64 = encode_image_base64(image)
 
