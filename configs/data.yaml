@@ -1,0 +1,36 @@
+dataset_root: data/raw
+images_dir: images
+annotations_dir: annotations
+clinical_dir: clinical
+clinical_table: clinical/clinical.csv
+clinical_columns:
+  patient_id: patient_id
+  hb_g_dl: hb_g_dl
+  sex: sex
+  age_years: age_years
+image_extensions: [".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"]
+annotation_suffixes: ["_palpebral", "_forniceal", "_forniceal_palpebral"]
+annotation_semantics: verify_required
+id:
+  image_patient_regex: null
+  annotation_image_regex: null
+  patient_from: parent_folder
+  strip_leading_zeros: false
+  case_sensitive: false
+  remove_image_suffixes: []
+annotation:
+  match: same_stem_or_configured_regex
+  selected_region: conjunctiva
+mask:
+  allowed_semantics: [binary, color_coded]
+  min_foreground_ratio: 0.0001
+  max_foreground_ratio: 0.95
+  require_same_dimensions: true
+split:
+  seed: 2025
+  train: 0.70
+  val: 0.15
+  test: 0.15
+  stratify: true
+output_manifest: data/processed/manifest.csv
+output_excluded: data/processed/excluded.csv

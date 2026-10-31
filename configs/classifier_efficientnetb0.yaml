@@ -1,0 +1,21 @@
+input_size: [224, 224]
+backbone: EfficientNetB0
+weights: imagenet
+dropout: 0.30
+head_units: 128
+stage1_learning_rate: 0.001
+stage2_learning_rate: 0.00002
+stage1_epochs: 20
+stage2_epochs: 30
+patience: 8
+batch_size: 8
+roi_margin_fraction: 0.15
+mask_outside_roi: false
+patient_aggregation: mean_probability
+augmentation:
+  rotation_degrees: 5
+  zoom_fraction: 0.08
+  translation_fraction: 0.04
+  brightness_delta: 0.05
+  contrast_range: [0.95, 1.05]
+  blur_probability: 0.03

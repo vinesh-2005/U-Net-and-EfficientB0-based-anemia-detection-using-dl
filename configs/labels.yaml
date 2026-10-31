@@ -1,0 +1,9 @@
+target:
+  task: binary_anemia_classification
+  hb_unit: g/dL
+  label_rule_id: UNVERIFIED_DATASET_STUDY_RULE
+  threshold_policy: MUST_BE_CONFIRMED_FROM_EYES-DEFY-ANEMIA_STUDY_DEFINITION
+  label_definition: null
+  threshold_g_dl: null
+  positive_label: anemic
+  negative_label: normal
