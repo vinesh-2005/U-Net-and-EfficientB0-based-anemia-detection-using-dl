@@ -490,8 +490,17 @@
             <span>AnemiaAI</span>
         </a>
         <div class="nav-links">
-            <a href="/" class="nav-link">Screening Assessment</a>
-            <a href="/dashboard" class="nav-link active">Evaluation Dashboard</a>
+            <a href="/" class="nav-link">AI Screening</a>
+            <a href="/#awarenessSection" class="nav-link">Nutritional Guidance</a>
+            <a href="/dashboard" class="nav-link active">Model Metrics</a>
+            <a href="/history" class="nav-link">Screening History</a>
+            {% if current_user %}
+            <span style="font-size: 13px; font-weight: 700; background: var(--primary-teal-subtle); color: var(--primary-teal); padding: 6px 14px; border-radius: 9999px;">👤 {{ current_user.full_name.split()[0] }}</span>
+            <a href="/logout" style="font-size: 13px; font-weight: 700; color: var(--muted-text); border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 9999px; text-decoration: none;">Logout</a>
+            {% else %}
+            <a href="/login" class="nav-link">Login</a>
+            <a href="/register" style="font-size: 13px; font-weight: 700; color: #FFFFFF; background: var(--primary-teal); padding: 7px 16px; border-radius: 9999px; text-decoration: none;">Register</a>
+            {% endif %}
         </div>
     </nav>
 

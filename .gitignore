@@ -8,6 +8,8 @@ __pycache__/
 *$py.class
 *.so
 .pytest_cache/
+*.sqlite3
+*.db
 
 # Virtual Environments
 .venv/
@@ -30,6 +32,7 @@ Thumbs.db
 # Sensitive Credentials and Environment Files
 .env
 .env.*
+!.env.example
 *.env
 secrets.*
 credentials.*

@@ -10,12 +10,32 @@ import uuid
 import cv2
 import numpy as np
 import tensorflow as tf
-from flask import Flask, render_template, request
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session,
+    send_from_directory,
+    abort,
+)
 from werkzeug.utils import secure_filename
 
 from src.roi.extract import extract_roi
 from src.segmentation.predict import predict_mask
 from src.explainability.gradcam import GradCAMExplainer
+from src.database import (
+    init_db,
+    check_db_connection,
+    register_user,
+    authenticate_user,
+    save_screening,
+    get_user_screenings,
+    get_screening_by_id,
+    User,
+    ScreeningHistory,
+)
 
 # --------------------------------------------------
 # Flask configuration & Base directory
@@ -28,16 +48,41 @@ app = Flask(
     template_folder=os.path.join(BASE_DIR, "templates"),
 )
 
+app.secret_key = os.environ.get("SECRET_KEY", "anemeia-secure-secret-key-2026")
+
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 
 try:
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    os.makedirs(os.path.join(UPLOAD_FOLDER, "screenings"), exist_ok=True)
 except Exception:
     pass
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
+
+# Initialize MySQL Database via Flask-SQLAlchemy
+db_initialized, db_status_msg = init_db(app, base_dir=BASE_DIR)
+
+
+# Global template context processor: injects user and database health
+@app.context_processor
+def inject_context():
+    user_id = session.get("user_id")
+    current_user = None
+    if user_id:
+        try:
+            from src.database.models import db
+            current_user = db.session.get(User, user_id)
+        except Exception:
+            current_user = None
+    is_db_connected, db_err = check_db_connection()
+    return {
+        "current_user": current_user,
+        "db_connected": is_db_connected,
+        "db_err": db_err,
+    }
 
 
 # --------------------------------------------------
@@ -211,6 +256,8 @@ def index():
     sex = None
     age = None
     error = None
+    saved_screening_id = None
+    db_notice = None
 
     roi_preview_b64 = None
     annotated_preview_b64 = None
@@ -341,6 +388,37 @@ def index():
             print(f"[AI Pipeline] Entire pipeline completed in {time.time() - t_start:.2f}s! -> Result: {image_result['classification']}")
             result = "Assessment Completed"
 
+            # Step 5: Save screening record to MySQL database
+            try:
+                is_connected, _ = check_db_connection()
+                if is_connected:
+                    record, save_err = save_screening(
+                        original_bgr=image,
+                        binary_mask=binary_mask,
+                        roi_bgr=roi,
+                        gradcam_bgr=gradcam_overlay,
+                        prediction=image_result["classification"],
+                        confidence_score=image_score,
+                        threshold=CLASSIFIER_THRESHOLD,
+                        tissue_quality=quality.get("quality_status", "accepted"),
+                        user_id=session.get("user_id"),
+                        patient_age=int(age) if age and str(age).isdigit() else None,
+                        patient_gender=sex if sex else None,
+                        model_name="EfficientNet-B0 + U-Net",
+                        upload_dir=app.config["UPLOAD_FOLDER"],
+                    )
+                    if record:
+                        saved_screening_id = record.id
+                        print(f"[Database] Screening #{saved_screening_id} saved successfully to MySQL.")
+                    elif save_err:
+                        db_notice = f"Notice: Screening completed, but could not save to database: {save_err}"
+                        print(f"[Database Save Error] {save_err}")
+                else:
+                    db_notice = "Notice: Screening completed. Result not stored because MySQL database is offline."
+            except Exception as db_e:
+                print(f"[Database Notice] Error saving screening: {db_e}")
+                db_notice = "Notice: Screening completed. Result could not be saved to database."
+
         except Exception as e:
             print("ERROR in index route:", str(e))
             error = str(e)
@@ -360,7 +438,151 @@ def index():
         mask_preview=mask_preview_b64,
         gradcam_preview=gradcam_preview_b64,
         gradcam_error=gradcam_error,
+        saved_screening_id=saved_screening_id,
+        db_notice=db_notice,
     )
+
+
+# --------------------------------------------------
+# User Management & Authentication routes
+# --------------------------------------------------
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if session.get("user_id"):
+        return redirect(url_for("index"))
+
+    error = None
+    if request.method == "POST":
+        full_name = request.form.get("full_name", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+        phone_number = request.form.get("phone_number", "").strip()
+
+        is_connected, db_err = check_db_connection()
+        if not is_connected:
+            error = f"Database is currently offline. Cannot register: {db_err or ''}"
+        else:
+            user, err = register_user(full_name, email, password, phone_number)
+            if user:
+                session["user_id"] = user.id
+                session["user_name"] = user.full_name
+                return redirect(url_for("index"))
+            else:
+                error = err
+
+    return render_template("register.html", error=error)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if session.get("user_id"):
+        return redirect(url_for("index"))
+
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+
+        is_connected, db_err = check_db_connection()
+        if not is_connected:
+            error = f"Database is currently offline. Cannot sign in: {db_err or ''}"
+        else:
+            user, err = authenticate_user(email, password)
+            if user:
+                session["user_id"] = user.id
+                session["user_name"] = user.full_name
+                next_page = request.args.get("next")
+                return redirect(next_page or url_for("index"))
+            else:
+                error = err
+
+    return render_template("login.html", error=error)
+
+
+@app.route("/logout")
+def logout():
+    session.pop("user_id", None)
+    session.pop("user_name", None)
+    return redirect(url_for("index"))
+
+
+# --------------------------------------------------
+# Screening History & Details routes
+# --------------------------------------------------
+
+@app.route("/history")
+def history():
+    user_id = session.get("user_id")
+    page = request.args.get("page", 1, type=int)
+
+    is_connected, db_err = check_db_connection()
+    if not is_connected:
+        return render_template(
+            "history.html",
+            screenings=[],
+            pagination=None,
+            db_error=f"Database is currently offline. {db_err or ''}",
+        )
+
+    pagination = get_user_screenings(user_id=user_id, page=page, per_page=10)
+    screenings = pagination.items if pagination else []
+
+    return render_template(
+        "history.html",
+        screenings=screenings,
+        pagination=pagination,
+        db_error=None,
+    )
+
+
+@app.route("/history/<int:screening_id>")
+def screening_details(screening_id):
+    user_id = session.get("user_id")
+
+    is_connected, db_err = check_db_connection()
+    if not is_connected:
+        return render_template(
+            "screening_details.html",
+            screening=None,
+            error=f"Database is currently offline: {db_err or 'Cannot load screening details.'}",
+        )
+
+    record, err = get_screening_by_id(screening_id, user_id=user_id)
+    return render_template(
+        "screening_details.html",
+        screening=record,
+        error=err,
+    )
+
+
+@app.route("/screenings/image/<int:screening_id>/<img_type>")
+def screening_image(screening_id, img_type):
+    if img_type not in ("original", "mask", "roi", "gradcam"):
+        abort(404)
+
+    user_id = session.get("user_id")
+    record, err = get_screening_by_id(screening_id, user_id=user_id)
+    if err or not record:
+        abort(403)
+
+    path_map = {
+        "original": record.original_image_path,
+        "mask": record.segmented_image_path,
+        "roi": record.extracted_roi_path,
+        "gradcam": record.gradcam_image_path,
+    }
+    rel_path = path_map.get(img_type)
+    if not rel_path:
+        abort(404)
+
+    full_path = os.path.join(app.config["UPLOAD_FOLDER"], rel_path)
+    if not os.path.exists(full_path):
+        abort(404)
+
+    directory = os.path.dirname(full_path)
+    filename = os.path.basename(full_path)
+    return send_from_directory(directory, filename)
 
 
 # --------------------------------------------------

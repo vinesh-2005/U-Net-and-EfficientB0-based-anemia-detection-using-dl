@@ -41,6 +41,7 @@ Anemia is a major global public health concern affecting over 1.6 billion indivi
 - **Computer Vision & Image Processing:** OpenCV (`cv2`), Pillow, NumPy, Matplotlib
 - **Machine Learning & Evaluation:** Scikit-learn, Pandas, SciPy
 - **Backend & Web Application:** Python 3.11, Flask, Werkzeug, Jinja2
+- **Database & Persistence:** MySQL 8.0+, Flask-SQLAlchemy, PyMySQL, Cryptography
 - **Frontend Architecture:** HTML5, CSS3 (Modern Responsive Healthcare Design System), Vanilla JavaScript
 - **Configuration & Reproducibility:** PyYAML, deterministic random seeds
 
@@ -78,6 +79,7 @@ Anemia is a major global public health concern affecting over 1.6 billion indivi
 
 ## 6. Project Modules
 
+- **`src/database/`**: MySQL database models (`User`, `ScreeningHistory`), connection configuration, authentication service, and audit storage.
 - **`src/segmentation/`**: U-Net architecture definitions, binary cross-entropy loss, Dice coefficient metric, mask inference engine, and TensorFlow Lite runtime adapter.
 - **`src/roi/`**: Automated bounding-box localization, margin padding, connected-component analysis, and quality validation.
 - **`src/classification/`**: EfficientNet-B0 model construction, stage-wise transfer learning, cosine/polynomial learning rate scheduling, and threshold calibration.
@@ -85,6 +87,10 @@ Anemia is a major global public health concern affecting over 1.6 billion indivi
 - **`src/common/`**: Configuration management (`yaml`), clinical metrics calculation (Sensitivity, Specificity, F1, ROC-AUC), and visual utilities.
 - **`templates/`**:
   - `index.html`: Responsive patient assessment interface, 4-panel visual result explainability, and separate nutritional guidance.
+  - `history.html`: Screening audit history table with pagination and user-isolated records.
+  - `screening_details.html`: Detailed individual screening audit record with stored 4-panel images and diagnostic attributes.
+  - `login.html`: Secure clinician and patient login portal.
+  - `register.html`: User account creation with encrypted password hashing.
   - `dashboard.html`: Comprehensive model evaluation dashboard displaying confusion matrices, ROC curves, and split metrics.
 
 ---
@@ -95,10 +101,12 @@ Anemia is a major global public health concern affecting over 1.6 billion indivi
 ANEMEIA/
 ├── app.py                     # Primary Flask web application and screening server
 ├── requirements.txt           # Verified Python package dependencies
+├── schema.sql                 # MySQL database schema (users, screening_history)
+├── .env.example               # Template environment configuration file
 ├── run_app.bat                # Windows launcher script for automated server startup
 ├── README.md                  # Comprehensive project documentation
 ├── ARCHITECTURE_ML.md         # Machine learning pipeline specification
-├── .gitignore                 # Exclusion rules for virtualenvs, caches, and datasets
+├── .gitignore                 # Exclusion rules for credentials, virtualenvs, and datasets
 │
 ├── configs/                   # Hyperparameter and pipeline YAML configurations
 │   ├── classifier_efficientnetb0.yaml
@@ -123,7 +131,8 @@ ANEMEIA/
 │       ├── val.csv
 │       └── test.csv
 │
-├── scripts/                   # Training, inference, and evaluation automation scripts
+├── scripts/                   # Training, inference, and database utility scripts
+│   ├── init_db.py             # Database connectivity test and table verification
 │   ├── evaluate_end_to_end.py
 │   ├── make_predicted_rois.py
 │   ├── prepare_dataset.py
@@ -131,6 +140,7 @@ ANEMEIA/
 │   └── train_segmentation.py
 │
 ├── src/                       # Core Python library implementation
+│   ├── database/              # MySQL database models, connection, and services
 │   ├── classification/        # EfficientNet-B0 model, dataset loaders, training logic
 │   ├── common/                # Metrics, logging, configs, reproducibility seeds
 │   ├── data/                  # Manifest generation, inventory, transforms
@@ -141,15 +151,20 @@ ANEMEIA/
 │
 ├── templates/                 # Web interface templates
 │   ├── index.html             # Patient screening & Nutritional Guidance UI
+│   ├── history.html           # Historical screening records table
+│   ├── screening_details.html # Individual screening record visual audit
+│   ├── login.html             # User login portal
+│   ├── register.html          # User registration portal
 │   └── dashboard.html         # Model evaluation and clinical benchmark dashboard
 │
 ├── tests/                     # Unit and integration test suites
+│   ├── test_mysql_database.py # Database, authentication, and access control tests
 │   ├── test_enhanced_features.py
 │   ├── test_inference_contract.py
 │   ├── test_roi_extraction.py
 │   └── test_splits.py
 │
-└── uploads/                   # Runtime temporary directory for uploaded images
+└── uploads/                   # Runtime directory for uploaded & audit images
     └── .gitkeep
 ```
 
@@ -243,7 +258,112 @@ http://127.0.0.1:5000/dashboard
 
 ---
 
-## 11. Deployment to Vercel
+## 11. MySQL Database Setup & Configuration
+
+ANEMEIA integrates a MySQL database to securely store user accounts and an immutable audit trail of screening predictions, confidence scores, and segmented images.
+
+### Step 1: Install and Start MySQL
+- **Windows:** Install [MySQL Community Server](https://dev.mysql.com/downloads/installer/) or start MySQL via [XAMPP](https://www.apachefriends.org/). Ensure the MySQL service is running on port `3306`.
+- **Linux:**
+  ```bash
+  sudo apt update && sudo apt install mysql-server
+  sudo systemctl start mysql
+  ```
+- **macOS:**
+  ```bash
+  brew install mysql
+  brew services start mysql
+  ```
+
+### Step 2: Create the Database & Apply Schema
+Connect to your local MySQL instance:
+```bash
+mysql -u root -p
+```
+Run the following SQL commands (or execute `schema.sql` directly):
+```sql
+CREATE DATABASE IF NOT EXISTS anemeia_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE anemeia_db;
+SOURCE schema.sql;
+```
+Or execute from your terminal:
+```bash
+mysql -u root -p anemeia_db < schema.sql
+```
+
+### Step 3: Configure Environment Variables
+Copy the provided `.env.example` file to `.env`:
+```bash
+cp .env.example .env
+```
+Open `.env` in any text editor and fill in your MySQL credentials:
+```ini
+SECRET_KEY=your-secure-random-secret-key
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=anemeia_db
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_FALLBACK_SQLITE=false
+```
+
+### Step 4: Verify Database Connection & Tables
+Execute the included database initialization and diagnostic utility:
+```bash
+python scripts/init_db.py
+```
+This utility tests the MySQL connection, verifies table creation (`users`, `screening_history`), and outputs clear diagnostics.
+
+### Step 5: Run Database Test Suite
+Verify that authentication, password hashing, and user-isolated screening history work correctly:
+```bash
+python -m unittest tests.test_mysql_database
+```
+
+### Database Architecture & Relationships
+
+```
+┌───────────────────────────────────────┐
+│                 users                 │
+├───────────────────────────────────────┤
+│ id (PK, BIGINT AUTO_INCREMENT)        │
+│ full_name (VARCHAR 120)               │
+│ email (VARCHAR 191, UNIQUE, INDEX)    │
+│ password_hash (VARCHAR 255)           │
+│ phone_number (VARCHAR 20, NULL)       │
+│ created_at (DATETIME)                 │
+└──────────────────┬────────────────────┘
+                   │ 1
+                   │
+                   │ N (ON DELETE SET NULL)
+┌──────────────────▼────────────────────┐
+│          screening_history            │
+├───────────────────────────────────────┤
+│ id (PK, BIGINT AUTO_INCREMENT)        │
+│ user_id (FK -> users.id, NULLABLE)    │
+│ patient_age (INT, NULLABLE)           │
+│ patient_gender (VARCHAR 20, NULLABLE) │
+│ original_image_path (VARCHAR 255)     │
+│ segmented_image_path (VARCHAR 255)    │
+│ extracted_roi_path (VARCHAR 255)      │
+│ gradcam_image_path (VARCHAR 255, NULL)│
+│ prediction (VARCHAR 50)               │
+│ confidence_score (FLOAT)              │
+│ threshold (FLOAT)                     │
+│ model_name (VARCHAR 100)              │
+│ tissue_quality (VARCHAR 50)           │
+│ created_at (DATETIME, INDEX)          │
+└───────────────────────────────────────┘
+```
+
+- **User Authentication:** Registered clinicians and patients can log in to view their personal screening records. Passwords are encrypted using Werkzeug's secure hashing (`scrypt`).
+- **User Isolation & Access Control:** Each user can only view their own screening records. Direct unauthorized URL access to other users' screenings is blocked (HTTP 403).
+- **Guest Screening:** Users can run AI screenings without logging in (`user_id` is nullable).
+- **Graceful Offline Degradation:** If the MySQL database server is offline, the deep learning inference pipeline (U-Net, EfficientNet-B0, and Grad-CAM) continues to function uninterrupted, displaying a clear notice on the UI rather than crashing or creating fake records.
+
+---
+
+## 12. Deployment to Vercel
 
 The project includes pre-configured [`vercel.json`](vercel.json) and [`.vercelignore`](.vercelignore) for serverless deployment:
 
