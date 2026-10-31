@@ -243,6 +243,22 @@ http://127.0.0.1:5000/dashboard
 
 ---
 
+## 11. Deployment to Vercel
+
+The project includes pre-configured [`vercel.json`](vercel.json) and [`.vercelignore`](.vercelignore) for serverless deployment:
+
+1. **Import the repository** into Vercel from your GitHub account.
+2. In the **Project Settings** on the Vercel dashboard:
+   - Navigate to **Environment Variables**.
+   - Add the following environment variable:
+     - **Key:** `VERCEL_SUPPORT_LARGE_FUNCTIONS`
+     - **Value:** `1`
+3. Click **Deploy**. Vercel will build the CPU-optimized serverless function within Fluid Compute limits.
+http://127.0.0.1:5000/dashboard
+```
+
+---
+
 ## 11. Limitations & Future Enhancements
 
 ### Current Limitations

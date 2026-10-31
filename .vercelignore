@@ -1,0 +1,29 @@
+# Environments and local caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Development & offline training datasets and scripts
+data/
+scripts/
+tests/
+check_dataset.py
+create_manifest.py
+create_splits.py
+generate_masks.py
+inspect_segmentation.py
+ARCHITECTURE_ML.md
+
+# Non-essential model weights (app.py uses best_unet_opt.tflite [7.5MB] and best_classifier.keras [33.9MB])
+artifacts/current/classifier/best_classifier_legacy.keras
+artifacts/current/classifier/best_classifier_stage1.keras
+artifacts/current/segmentation/best_unet.keras
+
+# Local test uploads & logs
+uploads/*
+!uploads/.gitkeep
+scratch/
+*.log
+.system_generated/

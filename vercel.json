@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/app"
+    }
+  ],
+  "functions": {
+    "app.py": {
+      "maxDuration": 60,
+      "memory": 3008,
+      "excludeFiles": "{tests/**,data/**,scripts/**,artifacts/current/classifier/best_classifier_legacy.keras,artifacts/current/classifier/best_classifier_stage1.keras,artifacts/current/segmentation/best_unet.keras}"
+    }
+  }
+}

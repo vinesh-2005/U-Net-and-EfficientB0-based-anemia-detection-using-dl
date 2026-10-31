@@ -14,15 +14,23 @@ from src.segmentation.predict import predict_mask
 from src.explainability.gradcam import GradCAMExplainer
 
 # --------------------------------------------------
-# Flask configuration
+# Flask configuration & Base directory
 # --------------------------------------------------
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-UPLOAD_FOLDER = "uploads"
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, "templates"),
+)
+
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+try:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except Exception:
+    pass
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
@@ -32,11 +40,11 @@ app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 # Model paths & configuration
 # --------------------------------------------------
 
-UNET_TFLITE_PATH = "artifacts/current/segmentation/best_unet_opt.tflite"
-UNET_PATH = "artifacts/current/segmentation/best_unet.keras"
-CLASSIFIER_PATH = "artifacts/current/classifier/best_classifier.keras"
-THRESHOLD_CONFIG_PATH = "artifacts/current/classifier/threshold_config.json"
-DASHBOARD_DATA_PATH = "artifacts/current/classifier/evaluation_dashboard_data.json"
+UNET_TFLITE_PATH = os.path.join(BASE_DIR, "artifacts", "current", "segmentation", "best_unet_opt.tflite")
+UNET_PATH = os.path.join(BASE_DIR, "artifacts", "current", "segmentation", "best_unet.keras")
+CLASSIFIER_PATH = os.path.join(BASE_DIR, "artifacts", "current", "classifier", "best_classifier.keras")
+THRESHOLD_CONFIG_PATH = os.path.join(BASE_DIR, "artifacts", "current", "classifier", "threshold_config.json")
+DASHBOARD_DATA_PATH = os.path.join(BASE_DIR, "artifacts", "current", "classifier", "evaluation_dashboard_data.json")
 
 DEFAULT_THRESHOLD = 0.3837
 CLASSIFIER_THRESHOLD = DEFAULT_THRESHOLD
@@ -57,7 +65,8 @@ print(f"Active classifier threshold: {CLASSIFIER_THRESHOLD:.4f}")
 
 if os.path.exists(UNET_TFLITE_PATH):
     print("Loading optimized U-Net (TFLite XNNPACK engine, 45x faster)...")
-    unet = tf.lite.Interpreter(model_path=UNET_TFLITE_PATH, num_threads=6)
+    num_threads = max(1, min(4, os.cpu_count() or 2))
+    unet = tf.lite.Interpreter(model_path=UNET_TFLITE_PATH, num_threads=num_threads)
     unet.allocate_tensors()
 else:
     print("Loading U-Net Keras model...")
