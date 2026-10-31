@@ -1,0 +1,56 @@
+# ========================================================
+# Git Ignore Configuration for ANEMEIA
+# ========================================================
+
+# Python Bytecode and Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+*venv*/
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Sensitive Credentials and Environment Files
+.env
+.env.*
+*.env
+secrets.*
+credentials.*
+
+# Large Datasets and Private Patient Images (Privacy Protection)
+data/raw/
+data/processed/masks/
+data/processed/roi_ground_truth/
+data/processed/roi_predicted/
+data/processed/roi_predicted_v2/
+data/processed/*.png
+data/processed/*.jpg
+data/processed/*.jpeg
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Uploads and Temporary Execution Files
+uploads/*
+!uploads/.gitkeep
+scratch/
+*.log
+.system_generated/

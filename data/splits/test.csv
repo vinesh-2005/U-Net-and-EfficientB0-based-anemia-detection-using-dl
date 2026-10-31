@@ -1,0 +1,34 @@
+patient_id,country,image_path,mask_path,hgb,gender,age,note
+114,Italy,data/raw/dataset anemia/Italy/114/T_83_20190614_080652.jpg,data/processed/masks/Italy/114.png,15.1,M,39,
+43,Italy,data/raw/dataset anemia/Italy/43/T_12_20190607_080302.jpg,data/processed/masks/Italy/43.png,14.7,M,59,
+6,Italy,data/raw/dataset anemia/Italy/6/6.jpg,data/processed/masks/Italy/6.png,15,F,77,da segmentare la forniceale 
+1,Italy,data/raw/dataset anemia/Italy/1/1.jpg,data/processed/masks/Italy/1.png,9.3,F,82,Forniceal conjunctiva not visible
+60,Italy,data/raw/dataset anemia/Italy/60/T_29_20190608_110432.jpg,data/processed/masks/Italy/60.png,"15,6",M,41,
+57,India,data/raw/dataset anemia/India/57/20200219_182849.jpg,data/processed/masks/India/57.png,10.3,F,33,
+79,Italy,data/raw/dataset anemia/Italy/79/T_48_20190611_095442.jpg,data/processed/masks/Italy/79.png,"14,7",M,31,
+117,Italy,data/raw/dataset anemia/Italy/117/T_86_20190614_081710.jpg,data/processed/masks/Italy/117.png,15.1,M,47,
+38,Italy,data/raw/dataset anemia/Italy/38/T_7_20190607_074759.jpg,data/processed/masks/Italy/38.png,15.4,M,56,
+15,Italy,data/raw/dataset anemia/Italy/15/15.jpg,data/processed/masks/Italy/15.png,13.3,F,86,da segmentare la forniceale 
+100,Italy,data/raw/dataset anemia/Italy/100/T_69_20190613_081445.jpg,data/processed/masks/Italy/100.png,14.5,F,63,
+46,Italy,data/raw/dataset anemia/Italy/46/T_15_20190608_075438.jpg,data/processed/masks/Italy/46.png,14.1,M,58,
+91,Italy,data/raw/dataset anemia/Italy/91/T_60_20190612_091032.jpg,data/processed/masks/Italy/91.png,15.4,M,41,
+10,India,data/raw/dataset anemia/India/10/20200203_091841.jpg,data/processed/masks/India/10.png,11.3,F,35,
+14,Italy,data/raw/dataset anemia/Italy/14/14.jpg,data/processed/masks/Italy/14.png,11.4,F,65,da segmentare la forniceale 
+53,Italy,data/raw/dataset anemia/Italy/53/T_22_20190608_084856.jpg,data/processed/masks/Italy/53.png,"15,1",M,43,
+84,Italy,data/raw/dataset anemia/Italy/84/T_53_20190612_081419.jpg,data/processed/masks/Italy/84.png,14.9,M,46,
+19,India,data/raw/dataset anemia/India/19/20200211_140525.jpg,data/processed/masks/India/19.png,12.6,M,21,
+2,Italy,data/raw/dataset anemia/Italy/2/2.jpg,data/processed/masks/Italy/2.png,10.2,F,77,da segmentare la forniceale 
+113,Italy,data/raw/dataset anemia/Italy/113/T_82_20190614_080327.jpg,data/processed/masks/Italy/113.png,14,M,58,
+76,Italy,data/raw/dataset anemia/Italy/76/T_45_20190611_090821.jpg,data/processed/masks/Italy/76.png,"13,7",F,48,
+46,India,data/raw/dataset anemia/India/46/20200216_231923.jpg,data/processed/masks/India/46.png,10.0,F,49,
+16,India,data/raw/dataset anemia/India/16/20200204_155221.jpg,data/processed/masks/India/16.png,8.9,F,37,
+87,India,data/raw/dataset anemia/India/87/20200302_222551.jpg,data/processed/masks/India/87.png,13.7,M,24,
+76,India,data/raw/dataset anemia/India/76/20200224_150539.jpg,data/processed/masks/India/76.png,9.3,F,30,
+67,India,data/raw/dataset anemia/India/67/20200224_115146.jpg,data/processed/masks/India/67.png,14.0,M,20,
+20,India,data/raw/dataset anemia/India/20/20200211_143315.jpg,data/processed/masks/India/20.png,11.9,M,21,
+61,India,data/raw/dataset anemia/India/61/20200223_185602.jpg,data/processed/masks/India/61.png,10.8,F,32,
+3,Italy,data/raw/dataset anemia/Italy/3/3.jpg,data/processed/masks/Italy/3.png,10.7,F,52,da segmentare la forniceale 
+10,Italy,data/raw/dataset anemia/Italy/10/10.jpg,data/processed/masks/Italy/10.png,12.2,M,70,da segmentare la forniceale 
+56,India,data/raw/dataset anemia/India/56/20200219_183506.jpg,data/processed/masks/India/56.png,8.8,F,55,
+85,India,data/raw/dataset anemia/India/85/20200229_205012.jpg,data/processed/masks/India/85.png,14.5,M,63,
+7,Italy,data/raw/dataset anemia/Italy/7/7.jpg,data/processed/masks/Italy/7.png,12,F,72,da segmentare la forniceale 

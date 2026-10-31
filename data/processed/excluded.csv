@@ -1,0 +1,1 @@
+patient_id,image_id,image_path,mask_path,hb_g_dl,sex,age_years,label_binary,label_definition,split,has_valid_mask,quality_status
