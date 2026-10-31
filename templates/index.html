@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anemia Screening & Awareness — AI Conjunctival Analysis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: #F0F7FA;
+            --bg-secondary: #E8F4F7;
+            --bg-card: #FFFFFF;
+            --primary-teal: #0F766E;
+            --primary-teal-light: #14B8A6;
+            --primary-teal-subtle: #E6F4F2;
+            --secondary-blue: #2563EB;
+            --secondary-blue-light: #EFF6FF;
+            --heading-color: #16324F;
+            --body-text: #475569;
+            --muted-text: #64748B;
+            --border-color: #D8E6EC;
+            --input-bg: #F8FBFC;
+            --danger-red: #DC2626;
+            --danger-bg: #FEF2F2;
+            --danger-border: #FECACA;
+            --success-green: #059669;
+            --success-bg: #ECFDF5;
+            --success-border: #A7F3D0;
+            --warning-amber: #D97706;
+            --warning-bg: #FFFBEB;
+            --warning-border: #FDE68A;
+            --purple-accent: #7C3AED;
+            --purple-bg: #F5F3FF;
+            --purple-border: #DDD6FE;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(180deg, #F0F7FA 0%, #FFFFFF 100%);
+            color: var(--body-text);
+            padding: 28px 20px 60px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+
+        /* TOP NAVIGATION */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 12px 24px;
+            margin-bottom: 28px;
+            box-shadow: 0 4px 16px rgba(22, 50, 79, 0.04);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--heading-color);
+            text-decoration: none;
+        }
+
+        .nav-brand .brand-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, var(--primary-teal), var(--secondary-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 17px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-link {
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 600;
+            text-decoration: none;
+            color: var(--muted-text);
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-teal);
+            background: var(--bg-secondary);
+        }
+
+        .nav-link.active {
+            color: var(--primary-teal);
+            background: var(--primary-teal-subtle);
+            font-weight: 700;
+        }
+
+        /* HERO HEADER */
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            background: var(--primary-teal-subtle);
+            border: 1px solid rgba(15, 118, 110, 0.2);
+            color: var(--primary-teal);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .brand-badge .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary-teal);
+            box-shadow: 0 0 8px rgba(15, 118, 110, 0.6);
+        }
+
+        h1.title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--heading-color);
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+
+        h1.title .accent-teal {
+            color: var(--primary-teal);
+        }
+
+        .subtitle {
+            font-size: 15px;
+            color: var(--muted-text);
+            max-width: 680px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* DISCLAIMER CALLOUT BANNER */
+        .disclaimer-banner {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-left: 4px solid var(--primary-teal);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-bottom: 28px;
+            font-size: 13px;
+            color: var(--body-text);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            line-height: 1.5;
+        }
+
+        .disclaimer-banner strong {
+            color: var(--heading-color);
+        }
+
+        /* CARD STYLES */
+        .medical-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 28px 32px;
+            margin-bottom: 28px;
+            box-shadow: 0 8px 24px rgba(22, 50, 79, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .section-heading {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--heading-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-heading .badge-tag {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: var(--primary-teal-subtle);
+            color: var(--primary-teal);
+            margin-left: auto;
+        }
+
+        /* FORM GRID */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* DROPZONE */
+        .dropzone {
+            border: 2px dashed rgba(15, 118, 110, 0.4);
+            background: var(--input-bg);
+            border-radius: 16px;
+            padding: 24px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+
+        .dropzone:hover {
+            border-color: var(--primary-teal);
+            background: #F0F9F8;
+            transform: translateY(-1px);
+        }
+
+        .dropzone-icon {
+            font-size: 38px;
+            margin-bottom: 10px;
+            display: block;
+            color: var(--primary-teal);
+        }
+
+        .dropzone-label {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--heading-color);
+            margin-bottom: 4px;
+        }
+
+        .dropzone-hint {
+            font-size: 12px;
+            color: var(--muted-text);
+        }
+
+        .dropzone input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-selected-name {
+            display: none;
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary-teal);
+            background: #FFFFFF;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(15, 118, 110, 0.3);
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .img-preview-container {
+            display: none;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .img-preview-container img {
+            max-width: 150px;
+            max-height: 110px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            object-fit: cover;
+        }
+
+        /* INPUT COLUMN */
+        .inputs-column {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--heading-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .input-group label .hint {
+            font-size: 11px;
+            font-weight: normal;
+            color: var(--muted-text);
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--input-bg);
+            font-size: 14px;
+            color: var(--heading-color);
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: var(--primary-teal);
+            background: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+        }
+
+        .guidance-box {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: var(--heading-color);
+            line-height: 1.5;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-top: auto;
+        }
+
+        .guidance-box .info-icon {
+            font-size: 16px;
+            color: var(--primary-teal);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .btn-submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 15px;
+            margin-top: 22px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #0F766E, #14B8A6);
+            color: #FFFFFF;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(15, 118, 110, 0.25);
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(15, 118, 110, 0.35);
+            filter: brightness(1.05);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* LOADING BANNER */
+        .loading-banner {
+            display: none;
+            background: #F0FDF4;
+            border: 2px solid #86EFAC;
+            border-radius: 14px;
+            padding: 18px 24px;
+            margin-top: 20px;
+            text-align: center;
+            color: #166534;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3.5px solid rgba(15, 118, 110, 0.2);
+            border-top-color: #0F766E;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0F766E;
+            margin-bottom: 4px;
+        }
+
+        .loading-desc {
+            font-size: 12.5px;
+            color: #374151;
+        }
+
+        /* ALERTS */
+        .error-alert {
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            border-radius: 14px;
+            padding: 16px 20px;
+            color: var(--danger-red);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        /* RESULTS DISPLAY */
+        .results-header-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px 20px;
+            margin-bottom: 22px;
+        }
+
+        .patient-demographics {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--heading-color);
+        }
+
+        .patient-demographics span {
+            color: var(--muted-text);
+            font-weight: normal;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .status-pill.anemic {
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            color: var(--danger-red);
+        }
+
+        .status-pill.normal {
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
+            color: var(--success-green);
+        }
+
+        .metric-hero {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .metric-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .metric-value.anemic { color: var(--danger-red); }
+        .metric-value.normal { color: var(--success-green); }
+
+        .metric-caption {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--heading-color);
+        }
+
+        /* SCORE BAR */
+        .score-bar-container {
+            margin-bottom: 24px;
+        }
+
+        .score-bar-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--muted-text);
+            margin-bottom: 6px;
+        }
+
+        .score-bar-track {
+            position: relative;
+            height: 12px;
+            background: #E2E8F0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .score-bar-fill.anemic {
+            background: linear-gradient(90deg, #F59E0B, var(--danger-red));
+        }
+
+        .score-bar-fill.normal {
+            background: linear-gradient(90deg, #34D399, var(--success-green));
+        }
+
+        .score-bar-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #0F172A;
+            z-index: 2;
+        }
+
+        /* 4-PANEL VISUAL EXPLAINABILITY GRID */
+        .preview-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .preview-box {
+            background: #F8FBFC;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .preview-box img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #E2E8F0;
+            background: #000;
+        }
+
+        .preview-caption {
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--heading-color);
+        }
+
+        .preview-subtext {
+            font-size: 11px;
+            color: var(--muted-text);
+        }
+
+        .gradcam-note {
+            background: #FDF4FF;
+            border: 1px solid #F0ABFC;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 12.5px;
+            color: #701A75;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .diag-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+        }
+
+        .diag-item {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 10px 14px;
+        }
+
+        .diag-item .label {
+            font-size: 11px;
+            color: var(--muted-text);
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 2px;
+            display: block;
+        }
+
+        .diag-item .val {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--heading-color);
+        }
+
+        /* ================================================= */
+        /* ANEMIA AWARENESS & NUTRITIONAL GUIDANCE SECTION   */
+        /* ================================================= */
+        .awareness-header {
+            margin-bottom: 24px;
+        }
+
+        .awareness-subtitle {
+            font-size: 14px;
+            color: var(--muted-text);
+            margin-top: -12px;
+            margin-bottom: 20px;
+        }
+
+        /* 3.A STEPS TO SUPPORT HEALTHY HB */
+        .steps-card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .step-item {
+            background: #F8FBFC;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--primary-teal);
+            color: #FFFFFF;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--heading-color);
+            margin-bottom: 4px;
+        }
+
+        .step-content p {
+            font-size: 12px;
+            color: var(--body-text);
+            line-height: 1.45;
+        }
+
+        /* 3.B WHAT TO EAT */
+        .subheading-row {
+            font-family: 'Outfit', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--heading-color);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .food-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .food-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .food-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(15, 118, 110, 0.08);
+            border-color: var(--primary-teal);
+        }
+
+        .food-card-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .food-card h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--heading-color);
+            margin-bottom: 6px;
+        }
+
+        .food-card ul {
+            list-style: none;
+            padding-left: 0;
+            font-size: 12px;
+            color: var(--body-text);
+            line-height: 1.6;
+        }
+
+        .food-card ul li::before {
+            content: "✓ ";
+            color: var(--success-green);
+            font-weight: 700;
+        }
+
+        /* 3.C WHAT TO LIMIT */
+        .limit-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .limit-card {
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .limit-card-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+            display: inline-block;
+        }
+
+        .limit-card h4 {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #92400E;
+            margin-bottom: 4px;
+        }
+
+        .limit-card p {
+            font-size: 12px;
+            color: #78350F;
+            line-height: 1.45;
+        }
+
+        /* 3.D DAILY DIET CHART */
+        .diet-timeline {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .diet-slot {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-top: 4px solid var(--primary-teal);
+            border-radius: 12px;
+            padding: 14px 12px;
+            transition: all 0.2s ease;
+        }
+
+        .diet-slot:hover {
+            box-shadow: 0 4px 14px rgba(22, 50, 79, 0.06);
+            transform: translateY(-2px);
+        }
+
+        .slot-tag {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--primary-teal);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .slot-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--heading-color);
+            margin-bottom: 6px;
+        }
+
+        .slot-items {
+            font-size: 11.5px;
+            color: var(--body-text);
+            line-height: 1.45;
+        }
+
+        /* FOOTER DISCLAIMER */
+        .disclaimer-card {
+            text-align: center;
+            font-size: 12.5px;
+            color: var(--muted-text);
+            line-height: 1.6;
+            padding: 20px 24px;
+            margin-top: 32px;
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+        }
+
+        .disclaimer-card strong {
+            color: var(--heading-color);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .preview-grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .steps-card-grid,
+            .limit-grid {
+                grid-template-columns: 1fr;
+            }
+            .food-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .diet-timeline {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            h1.title {
+                font-size: 26px;
+            }
+            .medical-card {
+                padding: 20px;
+            }
+            .diag-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- TOP NAVIGATION BAR -->
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            <span class="brand-icon">👁️</span>
+            <span>AnemiaAI</span>
+        </a>
+        <div class="nav-links">
+            <a href="/" class="nav-link active">AI Screening</a>
+            <a href="#awarenessSection" class="nav-link">Nutritional Guidance</a>
+            <a href="/dashboard" class="nav-link">Model Metrics</a>
+        </div>
+    </nav>
+
+    <!-- HERO HEADER -->
+    <header class="header">
+        <div class="brand-badge">
+            <span class="pulse-dot"></span>
+            Non-Invasive AI Screening System
+        </div>
+        <h1 class="title">Anemia Screening from <span class="accent-teal">Conjunctival Image</span></h1>
+        <p class="subtitle">
+            Automated palpebral conjunctiva segmentation via U-Net and transfer-learning anemia classification via EfficientNet-B0 with Grad-CAM explainability.
+        </p>
+    </header>
+
+    <!-- MANDATORY MEDICAL DISCLAIMER BANNER -->
+    <div class="disclaimer-banner">
+        <span style="font-size: 20px;">⚕️</span>
+        <div>
+            <strong>Medical Notice:</strong>
+            This application provides preliminary AI-based screening support and general nutritional information. It is not a medical diagnosis and cannot replace laboratory hemoglobin testing or professional medical advice.
+        </div>
+    </div>
+
+    <!-- ERROR NOTIFICATION -->
+    {% if error %}
+    <div class="error-alert">
+        <span style="font-size: 20px;">⚠️</span>
+        <div>
+            <strong>Notice:</strong> {{ error }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 1. PATIENT ASSESSMENT INPUT SECTION -->
+    <div class="medical-card">
+        <form method="POST" enctype="multipart/form-data" id="assessmentForm">
+            <div class="section-heading">
+                <span>📋</span> Patient Assessment Inputs
+                <span class="badge-tag">Image Required</span>
+            </div>
+
+            <div class="form-grid">
+                <!-- EYE IMAGE UPLOAD AREA -->
+                <div class="dropzone" id="dropzoneBox">
+                    <input type="file" name="eye_image" id="eyeImageInput" accept="image/png, image/jpeg, image/jpg" required>
+                    <span class="dropzone-icon">📷</span>
+                    <div class="dropzone-label">Upload Conjunctival Eye Image</div>
+                    <div class="dropzone-hint">Supports JPG, JPEG, or PNG formats (up to 10MB)</div>
+                    <div class="file-selected-name" id="fileSelectedName"></div>
+                    <div class="img-preview-container" id="imgPreviewContainer">
+                        <img id="imgPreviewThumb" src="" alt="Eye Photo Preview">
+                    </div>
+                </div>
+
+                <!-- PATIENT DEMOGRAPHICS (AGE & GENDER) -->
+                <div class="inputs-column">
+                    <div class="input-group">
+                        <label for="sexSelect">Gender / Biological Sex <span class="hint">Optional Demographics</span></label>
+                        <select name="sex" id="sexSelect">
+                            <option value="">Select Gender</option>
+                            <option value="female" {% if sex == 'Female' or sex == 'female' %}selected{% endif %}>Female</option>
+                            <option value="male" {% if sex == 'Male' or sex == 'male' %}selected{% endif %}>Male</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="ageInput">Age <span class="hint">Years (Optional)</span></label>
+                        <input type="number" name="age" id="ageInput" placeholder="e.g. 32" min="1" max="120" value="{{ age or '' }}">
+                    </div>
+
+                    <div class="guidance-box">
+                        <span class="info-icon">ℹ️</span>
+                        <div>
+                            <strong>Clinical Tip:</strong> For optimal accuracy, upload a focused photograph of the lower palpebral conjunctiva (obtained by gently drawing down the lower eyelid).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <span>⚡</span> Run AI Anemia Screening
+            </button>
+
+            <!-- ANIMATED LOADING STATUS -->
+            <div class="loading-banner" id="loadingBanner">
+                <div class="loading-spinner"></div>
+                <div class="loading-title">Processing Eye Image with Deep Learning...</div>
+                <div class="loading-desc">Executing U-Net conjunctiva segmentation, ROI extraction, and EfficientNet-B0 classification. Please wait ~5-10 seconds...</div>
+            </div>
+        </form>
+    </div>
+
+    <!-- 2. AI-BASED ANEMIA SCREENING RESULTS SECTION -->
+    {% if image_result %}
+    <section class="medical-card" id="resultsSection">
+        <div class="section-heading">
+            <span>📊</span> AI Screening Results & Interpretability
+            <span class="badge-tag">Model Analysis</span>
+        </div>
+
+        <!-- DEMOGRAPHICS & STATUS BANNER -->
+        <div class="results-header-banner">
+            <div class="patient-demographics">
+                {% if image_result.age %}
+                <div>Age: <strong>{{ image_result.age }}</strong> <span>yrs</span></div>
+                {% endif %}
+                {% if image_result.sex %}
+                <div>Gender: <strong>{{ image_result.sex }}</strong></div>
+                {% endif %}
+                {% if not image_result.age and not image_result.sex %}
+                <div>Assessment: <strong>Conjunctival Pallor Analysis</strong></div>
+                {% endif %}
+            </div>
+
+            {% if image_result.is_anemic %}
+            <span class="status-pill anemic">🔴 Anemia Detected</span>
+            {% else %}
+            <span class="status-pill normal">🟢 Non-Anemic (Normal)</span>
+            {% endif %}
+        </div>
+
+        <!-- RISK METRIC & SCORE HERO -->
+        <div class="metric-hero">
+            <div class="metric-value {% if image_result.is_anemic %}anemic{% else %}normal{% endif %}">
+                {{ "%.1f"|format(image_result.score_percentage) }}%
+            </div>
+            <div>
+                <div class="metric-caption">
+                    Model Predicted Risk Score
+                </div>
+                <div style="font-size: 13px; color: var(--muted-text); margin-top: 2px;">
+                    {{ image_result.confidence }} &bull; Calibrated Decision Cutoff: &ge; {{ "%.1f"|format(image_result.threshold * 100) }}%
+                </div>
+            </div>
+        </div>
+
+        <!-- SCORE BAR TRACK -->
+        <div class="score-bar-container">
+            <div class="score-bar-labels">
+                <span>0% (Low Risk)</span>
+                <span>Cutoff: {{ "%.1f"|format(image_result.threshold_percentage) }}%</span>
+                <span>100% (High Risk)</span>
+            </div>
+            <div class="score-bar-track">
+                <div class="score-bar-marker" style="left: {{ image_result.threshold_percentage }}%;" title="Decision Threshold: {{ '%.2f'|format(image_result.threshold) }}"></div>
+                <div class="score-bar-fill {% if image_result.is_anemic %}anemic{% else %}normal{% endif %}"
+                     style="width: {{ image_result.score_percentage }}%;"></div>
+            </div>
+        </div>
+
+        <!-- 4-PANEL VISUAL EXPLAINABILITY (Original, Segmented, ROI, Grad-CAM) -->
+        <div class="preview-grid-4">
+            {% if original_preview %}
+            <div class="preview-box">
+                <img src="{{ original_preview }}" alt="Uploaded Eye Image">
+                <div class="preview-caption">1. Uploaded Image</div>
+                <div class="preview-subtext">Original RGB input</div>
+            </div>
+            {% endif %}
+
+            {% if mask_preview %}
+            <div class="preview-box">
+                <img src="{{ mask_preview }}" alt="U-Net Conjunctival Mask">
+                <div class="preview-caption">2. Segmented Mask</div>
+                <div class="preview-subtext">U-Net conjunctiva</div>
+            </div>
+            {% endif %}
+
+            {% if roi_preview %}
+            <div class="preview-box">
+                <img src="{{ roi_preview }}" alt="Extracted Conjunctiva ROI">
+                <div class="preview-caption">3. Extracted ROI</div>
+                <div class="preview-subtext">Standardized 224x224</div>
+            </div>
+            {% endif %}
+
+            {% if gradcam_preview %}
+            <div class="preview-box">
+                <img src="{{ gradcam_preview }}" alt="Grad-CAM Visualization">
+                <div class="preview-caption">4. Grad-CAM Heatmap</div>
+                <div class="preview-subtext">Salient pallor regions</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- GRAD-CAM EXPLANATION -->
+        {% if gradcam_preview %}
+        <div class="gradcam-note">
+            💡 <strong>Grad-CAM Visual Explainability:</strong>
+            The heatmap highlights the specific tissue regions in the palpebral conjunctiva that influenced the EfficientNet-B0 classifier's decision. Warmer areas (red/yellow) indicate the strongest visual activations for this assessment.
+        </div>
+        {% elif gradcam_error %}
+        <div class="helper-note" style="background: var(--warning-bg); color: var(--warning-amber); margin: 10px 0; border-radius: 8px; padding: 10px;">
+            ⚠️ Notice: {{ gradcam_error }}
+        </div>
+        {% endif %}
+
+        <!-- MODEL DIAGNOSTIC ATTRIBUTES -->
+        <div class="diag-grid">
+            <div class="diag-item">
+                <span class="label">Segmentation Model</span>
+                <span class="val">U-Net (Conjunctival Mask)</span>
+            </div>
+            <div class="diag-item">
+                <span class="label">Classification Backbone</span>
+                <span class="val">EfficientNet-B0 (Transfer Learning)</span>
+            </div>
+            <div class="diag-item">
+                <span class="label">Tissue Quality Validation</span>
+                <span class="val" style="color: var(--success-green);">{{ image_result.quality|capitalize }}</span>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ================================================= -->
+    <!-- 3. SEPARATE ANEMIA AWARENESS & NUTRITIONAL GUIDANCE -->
+    <!-- ================================================= -->
+    <section class="medical-card" id="awarenessSection">
+        <div class="awareness-header">
+            <div class="section-heading">
+                <span>🥗</span> Anemia Awareness & Nutritional Guidance
+                <span class="badge-tag">Health Education</span>
+            </div>
+            <p class="awareness-subtitle">
+                Comprehensive, evidence-based dietary recommendations to support healthy hemoglobin levels, optimize dietary iron absorption, and maintain red blood cell production.
+            </p>
+        </div>
+
+        <!-- 3.A STEPS TO SUPPORT HEALTHY HEMOGLOBIN LEVELS -->
+        <div class="subheading-row">
+            <span>🩺</span> A. Steps to Support Healthy Hemoglobin Levels
+        </div>
+        <div class="steps-card-grid">
+            <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Include Iron-Rich Foods</h4>
+                    <p>Incorporate both heme and non-heme iron sources in daily meals to replenish body iron stores.</p>
+                </div>
+            </div>
+
+            <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>Consume Vitamin C-Rich Foods</h4>
+                    <p>Vitamin C converts dietary ferric iron into easily absorbable ferrous iron when consumed with meals.</p>
+                </div>
+            </div>
+
+            <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Include Folate & Vitamin B12 Sources</h4>
+                    <p>Folate (B9) and Cobalamin (B12) are critical cofactors for red blood cell synthesis and DNA repair.</p>
+                </div>
+            </div>
+
+            <div class="step-item">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4>Maintain a Balanced Diet</h4>
+                    <p>Ensure adequate dietary protein, essential trace minerals (copper, zinc), and proper daily hydration.</p>
+                </div>
+            </div>
+
+            <div class="step-item">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h4>Consult a Healthcare Professional</h4>
+                    <p>Visit a qualified physician to identify the underlying cause of anemia (iron loss, chronic disease, or malabsorption).</p>
+                </div>
+            </div>
+
+            <div class="step-item">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <h4>Follow Medically Prescribed Treatment</h4>
+                    <p>Adhere strictly to clinical recommendations, prescribed therapies, and routine follow-up blood tests.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3.B WHAT TO EAT -->
+        <div class="subheading-row">
+            <span>🥦</span> B. What to Eat
+        </div>
+        <div class="food-grid">
+            <div class="food-card">
+                <span class="food-card-icon">🥬</span>
+                <h4>Iron-Rich Foods</h4>
+                <ul>
+                    <li>Spinach & fenugreek</li>
+                    <li>Lentils & split peas</li>
+                    <li>Beans & chickpeas</li>
+                    <li>Beetroot & dates</li>
+                    <li>Pumpkin & sesame seeds</li>
+                </ul>
+            </div>
+
+            <div class="food-card">
+                <span class="food-card-icon">🍊</span>
+                <h4>Vitamin C Sources</h4>
+                <ul>
+                    <li>Guava & amla</li>
+                    <li>Oranges & grapefruits</li>
+                    <li>Lemon & lime</li>
+                    <li>Strawberries & kiwis</li>
+                    <li>Bell peppers & broccoli</li>
+                </ul>
+            </div>
+
+            <div class="food-card">
+                <span class="food-card-icon">🥗</span>
+                <h4>Folate Sources</h4>
+                <ul>
+                    <li>Green leafy vegetables</li>
+                    <li>Asparagus & Brussels sprouts</li>
+                    <li>Avocado & papaya</li>
+                    <li>Black-eyed peas</li>
+                    <li>Fortified whole grains</li>
+                </ul>
+            </div>
+
+            <div class="food-card">
+                <span class="food-card-icon">🥚</span>
+                <h4>Vitamin B12 Sources</h4>
+                <ul>
+                    <li>Eggs (whole)</li>
+                    <li>Milk & dairy products</li>
+                    <li>Fish (salmon, tuna)</li>
+                    <li>Paneer & Greek yogurt</li>
+                    <li>Fortified plant milks</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 3.C WHAT TO LIMIT -->
+        <div class="subheading-row">
+            <span>⚠️</span> C. What to Limit
+        </div>
+        <div class="limit-grid">
+            <div class="limit-card">
+                <span class="limit-card-icon">☕</span>
+                <h4>Limit Tea & Coffee Near Meals</h4>
+                <p>Tannins and polyphenols found in coffee and black/green tea bind tightly to non-heme iron and inhibit absorption. Avoid having tea or coffee within 1 to 2 hours of iron-rich meals.</p>
+            </div>
+
+            <div class="limit-card">
+                <span class="limit-card-icon">💊</span>
+                <h4>Avoid Unsupervised Self-Medication</h4>
+                <p>Do not initiate high-dose iron supplements without diagnostic clinical blood tests. Excessive unmanaged iron stores can accumulate in organs and cause toxicity.</p>
+            </div>
+
+            <div class="limit-card">
+                <span class="limit-card-icon">🥛</span>
+                <h4>Separate Calcium from Iron</h4>
+                <p>Calcium directly competes with iron across intestinal transport channels. Calcium supplements or large dairy portions should be spaced a few hours apart from iron supplements as medically advised.</p>
+            </div>
+        </div>
+
+        <!-- 3.D DAILY DIET CHART -->
+        <div class="subheading-row">
+            <span>🍽️</span> D. Daily Diet Chart
+        </div>
+        <div class="diet-timeline">
+            <div class="diet-slot">
+                <span class="slot-tag">Morning</span>
+                <div class="slot-title">Breakfast</div>
+                <div class="slot-items">
+                    Iron-fortified oatmeal or vegetable poha with boiled eggs or sprouted moong, paired with fresh orange or lemon juice.
+                </div>
+            </div>
+
+            <div class="diet-slot">
+                <span class="slot-tag">Late Morning</span>
+                <div class="slot-title">Mid-Morning</div>
+                <div class="slot-items">
+                    Fresh ripe guava or seasonal citrus slices, accompanied by a small handful of roasted pumpkin seeds or 2-3 black dates.
+                </div>
+            </div>
+
+            <div class="diet-slot">
+                <span class="slot-tag">Afternoon</span>
+                <div class="slot-title">Lunch</div>
+                <div class="slot-items">
+                    Spinach dal (palak lentils) or rajma with whole-wheat roti/brown rice, served with fresh cucumber-tomato salad and lemon squeeze.
+                </div>
+            </div>
+
+            <div class="diet-slot">
+                <span class="slot-tag">Late Afternoon</span>
+                <div class="slot-title">Evening Snack</div>
+                <div class="slot-items">
+                    Roasted chickpeas (chana) with jaggery, a cup of fresh pomegranate arils, or a cold-pressed beetroot smoothie.
+                </div>
+            </div>
+
+            <div class="diet-slot">
+                <span class="slot-tag">Night</span>
+                <div class="slot-title">Dinner</div>
+                <div class="slot-items">
+                    Steamed/grilled fish or paneer-bean curry, sauteed leafy greens (methi/amaranth), and a warm bowl of lentil or vegetable soup.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. MANDATORY MEDICAL DISCLAIMER (FOOTER) -->
+    <footer class="disclaimer-card">
+        ⚕️ <strong>Medical Disclaimer:</strong><br>
+        This application provides preliminary AI-based screening support and general nutritional information. It is not a medical diagnosis and cannot replace laboratory hemoglobin testing or professional medical advice.
+    </footer>
+
+</div>
+
+<!-- JAVASCRIPT LOGIC -->
+<script>
+    const fileInput = document.getElementById('eyeImageInput');
+    const nameDisplay = document.getElementById('fileSelectedName');
+    const previewContainer = document.getElementById('imgPreviewContainer');
+    const previewThumb = document.getElementById('imgPreviewThumb');
+    const form = document.getElementById('assessmentForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const loadingBanner = document.getElementById('loadingBanner');
+
+    // Live thumbnail preview on file selection
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                nameDisplay.textContent = 'Selected: ' + file.name;
+                nameDisplay.style.display = 'inline-block';
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewThumb.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                nameDisplay.textContent = '';
+                nameDisplay.style.display = 'none';
+                previewContainer.style.display = 'none';
+                previewThumb.src = '';
+            }
+        });
+    }
+
+    // Form submission & loading state
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            const hasImg = fileInput && fileInput.files && fileInput.files.length > 0;
+
+            if (!hasImg) {
+                e.preventDefault();
+                alert('Please select a conjunctival eye image file before submitting.');
+                return;
+            }
+
+            // Disable submit button and trigger loading animation
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>⏳</span> Processing AI Screening...';
+            loadingBanner.style.display = 'block';
+        });
+    }
+
+    // Auto-scroll to results if present
+    window.addEventListener('DOMContentLoaded', function () {
+        const results = document.getElementById('resultsSection');
+        if (results) {
+            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+</script>
+
+</body>
+</html>
