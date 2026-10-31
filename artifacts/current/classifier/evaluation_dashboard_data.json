@@ -1,0 +1,187 @@
+{
+  "threshold": 0.38367292284965515,
+  "model_info": {
+    "architecture": "EfficientNetB0 (Fine-Tuned Transfer Learning) + U-Net",
+    "segmentation_model": "U-Net Conjunctiva Segmentation (Input 256x256)",
+    "classifier_model": "EfficientNetB0 (Input 224x224x3)",
+    "dataset_name": "EYES-DEFY-ANEMIA Conjunctival Dataset (Italy & India Cohorts)",
+    "total_samples": 202,
+    "split_counts": {
+      "train": 142,
+      "val": 31,
+      "test": 29
+    },
+    "checkpoint_path": "artifacts/current/classifier/best_classifier.keras",
+    "threshold_calibration": "Calibrated on Validation Set for optimal Sensitivity & F1"
+  },
+  "splits": {
+    "test": {
+      "total_samples": 29,
+      "non_anemic_count": 15,
+      "anemic_count": 14,
+      "metrics": {
+        "accuracy": 0.7931034482758621,
+        "precision": 0.7222222222222222,
+        "recall_sensitivity": 0.9285714285714286,
+        "specificity": 0.6666666666666666,
+        "f1_score": 0.8125,
+        "roc_auc": 0.7761904761904762
+      },
+      "confusion_matrix": {
+        "tp": 13,
+        "tn": 10,
+        "fp": 5,
+        "fn": 1,
+        "matrix": [
+          [
+            10,
+            5
+          ],
+          [
+            1,
+            13
+          ]
+        ]
+      },
+      "roc_curve": {
+        "roc_auc": 0.7761904761904762,
+        "points": [
+          {
+            "fpr": 0.0,
+            "tpr": 0.0
+          },
+          {
+            "fpr": 0.0,
+            "tpr": 0.0714
+          },
+          {
+            "fpr": 0.1333,
+            "tpr": 0.0714
+          },
+          {
+            "fpr": 0.1333,
+            "tpr": 0.4286
+          },
+          {
+            "fpr": 0.2,
+            "tpr": 0.4286
+          },
+          {
+            "fpr": 0.2,
+            "tpr": 0.5714
+          },
+          {
+            "fpr": 0.2667,
+            "tpr": 0.5714
+          },
+          {
+            "fpr": 0.2667,
+            "tpr": 0.6429
+          },
+          {
+            "fpr": 0.3333,
+            "tpr": 0.6429
+          },
+          {
+            "fpr": 0.3333,
+            "tpr": 0.9286
+          },
+          {
+            "fpr": 0.4667,
+            "tpr": 0.9286
+          },
+          {
+            "fpr": 0.4667,
+            "tpr": 1.0
+          },
+          {
+            "fpr": 1.0,
+            "tpr": 1.0
+          }
+        ]
+      }
+    },
+    "val": {
+      "total_samples": 31,
+      "non_anemic_count": 16,
+      "anemic_count": 15,
+      "metrics": {
+        "accuracy": 0.8709677419354839,
+        "precision": 0.8235294117647058,
+        "recall_sensitivity": 0.9333333333333333,
+        "specificity": 0.8125,
+        "f1_score": 0.875,
+        "roc_auc": 0.8916666666666666
+      },
+      "confusion_matrix": {
+        "tp": 14,
+        "tn": 13,
+        "fp": 3,
+        "fn": 1,
+        "matrix": [
+          [
+            13,
+            3
+          ],
+          [
+            1,
+            14
+          ]
+        ]
+      },
+      "roc_curve": {
+        "roc_auc": 0.8916666666666666,
+        "points": [
+          {
+            "fpr": 0.0,
+            "tpr": 0.0
+          },
+          {
+            "fpr": 0.0,
+            "tpr": 0.0667
+          },
+          {
+            "fpr": 0.0,
+            "tpr": 0.3333
+          },
+          {
+            "fpr": 0.0625,
+            "tpr": 0.3333
+          },
+          {
+            "fpr": 0.0625,
+            "tpr": 0.4667
+          },
+          {
+            "fpr": 0.125,
+            "tpr": 0.4667
+          },
+          {
+            "fpr": 0.125,
+            "tpr": 0.6667
+          },
+          {
+            "fpr": 0.1875,
+            "tpr": 0.6667
+          },
+          {
+            "fpr": 0.1875,
+            "tpr": 0.9333
+          },
+          {
+            "fpr": 0.375,
+            "tpr": 0.9333
+          },
+          {
+            "fpr": 0.375,
+            "tpr": 1.0
+          },
+          {
+            "fpr": 1.0,
+            "tpr": 1.0
+          }
+        ]
+      }
+    }
+  }
+}
