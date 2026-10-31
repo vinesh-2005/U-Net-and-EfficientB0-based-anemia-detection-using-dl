@@ -1027,7 +1027,7 @@
     <div class="db-success-banner">
         <div style="display: flex; align-items: center; gap: 8px;">
             <span>💾</span>
-            <div><strong>Audit Record Stored:</strong> Screening #{{ saved_screening_id }} has been saved to your screening history in MySQL.</div>
+            <div><strong>Audit Record Stored:</strong> Screening #{{ saved_screening_id }} has been saved to your patient screening history database.</div>
         </div>
         <a href="/history/{{ saved_screening_id }}" style="font-weight: 700; color: #047857; text-decoration: underline;">View Full Audit Record &rarr;</a>
     </div>
@@ -1042,7 +1042,7 @@
     <div class="db-status-banner">
         <span>ℹ️</span>
         <div>
-            <strong>Database Offline Notice:</strong> MySQL server is currently offline. AI deep learning screening and Grad-CAM are fully functional; database history saving will activate automatically once MySQL is running.
+            <strong>Database Offline Notice:</strong> Database server is currently offline. AI deep learning screening and Grad-CAM are fully functional; database history saving will activate automatically once database connection is restored.
         </div>
     </div>
     {% endif %}

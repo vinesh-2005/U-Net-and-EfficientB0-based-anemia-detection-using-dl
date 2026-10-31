@@ -64,13 +64,15 @@ app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 db_initialized, db_status_msg = init_db(app, base_dir=BASE_DIR)
 
 
-# Global template context processor: injects database health
+# Global template context processor: injects database health and storage mode
 @app.context_processor
 def inject_context():
     is_db_connected, db_err = check_db_connection()
+    is_sqlite = str(app.config.get("SQLALCHEMY_DATABASE_URI", "")).startswith("sqlite")
     return {
         "db_connected": is_db_connected,
         "db_err": db_err,
+        "is_sqlite": is_sqlite,
     }
 
 
@@ -401,12 +403,12 @@ def index():
                     )
                     if record:
                         saved_screening_id = record.id
-                        print(f"[Database] Screening #{saved_screening_id} for '{patient_name or 'Anonymous'}' saved successfully to MySQL.")
+                        print(f"[Database] Screening #{saved_screening_id} for '{patient_name or 'Anonymous'}' saved successfully to database.")
                     elif save_err:
                         db_notice = f"Notice: Screening completed, but could not save to database: {save_err}"
                         print(f"[Database Save Error] {save_err}")
                 else:
-                    db_notice = "Notice: Screening completed. Result not stored because MySQL database is offline."
+                    db_notice = "Notice: Screening completed. Result not stored because database is offline."
             except Exception as db_e:
                 print(f"[Database Notice] Error saving screening: {db_e}")
                 db_notice = "Notice: Screening completed. Result could not be saved to database."

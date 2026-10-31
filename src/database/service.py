@@ -39,10 +39,32 @@ def check_db_connection(app=None) -> tuple[bool, str | None]:
 def init_db(app, base_dir=None):
     """
     Initializes Flask-SQLAlchemy with the application and attempts safe table creation.
-    If database server is offline, catches the error so the web app can still start.
+    If MySQL server is offline or not installed, automatically activates a resilient
+    local SQLite database fallback (anemeia_db.sqlite3) so screening history is never lost.
     """
     from .config import get_db_uri
     db_uri = get_db_uri(base_dir)
+
+    is_fallback = False
+    if not db_uri.startswith("sqlite"):
+        try:
+            from sqlalchemy import create_engine
+            # Quick probe to test if MySQL server is running and responding
+            test_engine = create_engine(
+                db_uri,
+                connect_args={"connect_timeout": 2},
+            )
+            with test_engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            test_engine.dispose()
+        except Exception as probe_err:
+            logger.warning(
+                f"MySQL server is offline or unreachable ({probe_err}). "
+                "Activating resilient local SQLite database fallback."
+            )
+            sqlite_path = os.path.join(base_dir or ".", "anemeia_db.sqlite3")
+            db_uri = f"sqlite:///{sqlite_path}"
+            is_fallback = True
 
     app.config["SQLALCHEMY_DATABASE_URI"] = db_uri
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -56,8 +78,12 @@ def init_db(app, base_dir=None):
     with app.app_context():
         try:
             db.create_all()
-            logger.info("Database tables verified/created successfully.")
-            return True, "Connected"
+            if is_fallback:
+                logger.info("Local SQLite database initialized successfully at anemeia_db.sqlite3")
+                return True, "Connected (Local Storage Fallback)"
+            else:
+                logger.info("MySQL database connected and tables verified successfully.")
+                return True, "Connected (MySQL)"
         except Exception as e:
             logger.warning(f"Could not initialize database tables: {e}")
             return False, str(e)
