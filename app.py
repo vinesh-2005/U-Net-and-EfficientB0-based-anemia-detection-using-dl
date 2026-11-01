@@ -3,6 +3,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(line_buffering=True)
 
 import base64
+import io
 import json
 import os
 import uuid
@@ -17,6 +18,7 @@ from flask import (
     redirect,
     url_for,
     session,
+    send_file,
     send_from_directory,
     abort,
 )
@@ -26,12 +28,16 @@ from src.roi.extract import extract_roi
 from src.segmentation.predict import predict_mask
 from src.explainability.gradcam import GradCAMExplainer
 from src.database import (
+    db,
     init_db,
     check_db_connection,
     save_screening,
     get_all_screenings,
     get_user_screenings,
     get_screening_by_id,
+    get_patient_progress_data,
+    generate_patient_pdf_report,
+    Patient,
     ScreeningHistory,
 )
 
@@ -245,6 +251,7 @@ def index():
     image_result = None
     image_score = None
     patient_name = None
+    patient_id = None
     sex = None
     age = None
     error = None
@@ -262,6 +269,7 @@ def index():
         try:
             file = request.files.get("eye_image")
             patient_name = request.form.get("patient_name", "").strip()
+            patient_id = request.form.get("patient_id", "").strip()
             age = request.form.get("age", "").strip()
             sex = request.form.get("sex", "").strip()
 
@@ -277,7 +285,7 @@ def index():
 
             import time
             t_start = time.time()
-            print(f"\n[AI Pipeline] Received image: {file.filename} (Patient: {patient_name or 'Anonymous'}, Age: {age or 'N/A'}, Sex: {sex or 'N/A'})")
+            print(f"\n[AI Pipeline] Received image: {file.filename} (Patient: {patient_name or 'Anonymous'}, ID: {patient_id or 'Auto'}, Age: {age or 'N/A'}, Sex: {sex or 'N/A'})")
 
             # Read and decode image directly in memory (avoids Windows file lock issues)
             file_bytes = file.read()
@@ -340,6 +348,7 @@ def index():
 
             is_anemic = image_score >= CLASSIFIER_THRESHOLD
             image_result = {
+                "patient_id": patient_id or "Auto-Assigned",
                 "patient_name": patient_name if patient_name else "Anonymous Patient",
                 "is_anemic": is_anemic,
                 "score": image_score,
@@ -382,7 +391,7 @@ def index():
             print(f"[AI Pipeline] Entire pipeline completed in {time.time() - t_start:.2f}s! -> Result: {image_result['classification']}")
             result = "Assessment Completed"
 
-            # Step 5: Save screening record to MySQL database
+            # Step 5: Save screening record to database (with Patient ID association)
             try:
                 is_connected, _ = check_db_connection()
                 if is_connected:
@@ -395,6 +404,7 @@ def index():
                         confidence_score=image_score,
                         threshold=CLASSIFIER_THRESHOLD,
                         tissue_quality=quality.get("quality_status", "accepted"),
+                        patient_id=patient_id if patient_id else None,
                         patient_name=patient_name if patient_name else "Anonymous Patient",
                         patient_age=int(age) if age and str(age).isdigit() else None,
                         patient_gender=sex if sex else None,
@@ -403,7 +413,10 @@ def index():
                     )
                     if record:
                         saved_screening_id = record.id
-                        print(f"[Database] Screening #{saved_screening_id} for '{patient_name or 'Anonymous'}' saved successfully to database.")
+                        patient_id = record.display_patient_id
+                        image_result["patient_id"] = record.display_patient_id
+                        image_result["patient_name"] = record.patient_name
+                        print(f"[Database] Screening #{saved_screening_id} for Patient {record.display_patient_id} ('{record.patient_name}') saved successfully.")
                     elif save_err:
                         db_notice = f"Notice: Screening completed, but could not save to database: {save_err}"
                         print(f"[Database Save Error] {save_err}")
@@ -422,6 +435,7 @@ def index():
         result=result,
         image_result=image_result,
         image_score=image_score,
+        patient_id=patient_id,
         patient_name=patient_name,
         sex=sex,
         age=age,
@@ -476,14 +490,75 @@ def screening_details(screening_id):
         return render_template(
             "screening_details.html",
             screening=None,
+            progress=None,
+            patient=None,
+            timeline=[],
+            chart_data=None,
             error=f"Database is currently offline: {db_err or 'Cannot load screening details.'}",
         )
 
-    record, err = get_screening_by_id(screening_id)
+    progress_data = get_patient_progress_data(screening_id=screening_id)
+    if not progress_data:
+        record, err = get_screening_by_id(screening_id)
+        return render_template(
+            "screening_details.html",
+            screening=record,
+            progress=None,
+            patient=None,
+            timeline=[],
+            chart_data=None,
+            error=err or "Screening record not found.",
+        )
+
     return render_template(
         "screening_details.html",
-        screening=record,
-        error=err,
+        screening=progress_data["current_screening"],
+        progress=progress_data,
+        patient=progress_data["patient"],
+        timeline=progress_data["screenings"],
+        chart_data=progress_data["chart_data"],
+        error=None,
+    )
+
+
+@app.route("/history/<int:screening_id>/report.pdf")
+def download_screening_report(screening_id):
+    is_connected, _ = check_db_connection()
+    if not is_connected:
+        abort(503)
+
+    pdf_bytes = generate_patient_pdf_report(screening_id=screening_id)
+    if not pdf_bytes:
+        abort(404)
+
+    record, _ = get_screening_by_id(screening_id)
+    pat_id = record.display_patient_id if record else f"SCR-{screening_id}"
+    filename = f"AnemiaAI_Progress_Report_{pat_id}.pdf"
+
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
+@app.route("/patient/<patient_id>/report.pdf")
+def download_patient_report(patient_id):
+    is_connected, _ = check_db_connection()
+    if not is_connected:
+        abort(503)
+
+    pdf_bytes = generate_patient_pdf_report(patient_id=patient_id)
+    if not pdf_bytes:
+        abort(404)
+
+    filename = f"AnemiaAI_Progress_Report_{patient_id}.pdf"
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=filename,
     )
 
 

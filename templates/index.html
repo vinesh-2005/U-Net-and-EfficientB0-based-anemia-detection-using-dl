@@ -1078,11 +1078,16 @@
                     </div>
                 </div>
 
-                <!-- PATIENT DEMOGRAPHICS (NAME, GENDER, AGE) -->
+                <!-- PATIENT DEMOGRAPHICS (ID, NAME, GENDER, AGE) -->
                 <div class="inputs-column">
                     <div class="input-group">
-                        <label for="patientNameInput">Patient Full Name <span class="hint">Patient Name or ID</span></label>
+                        <label for="patientNameInput">Patient Full Name <span class="hint">Patient Name</span></label>
                         <input type="text" name="patient_name" id="patientNameInput" placeholder="e.g. Eleanor Vance" value="{{ patient_name or '' }}" autocomplete="off">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="patientIdInput">Patient ID <span class="hint">Optional (auto-assigned if blank)</span></label>
+                        <input type="text" name="patient_id" id="patientIdInput" placeholder="e.g. PID-1001" value="{{ patient_id or '' }}" autocomplete="off">
                     </div>
 
                     <div class="input-group">
@@ -1132,6 +1137,9 @@
         <!-- DEMOGRAPHICS & STATUS BANNER -->
         <div class="results-header-banner">
             <div class="patient-demographics">
+                {% if image_result.patient_id %}
+                <div>Patient ID: <strong style="color: var(--primary-teal);">{{ image_result.patient_id }}</strong></div>
+                {% endif %}
                 {% if image_result.patient_name and image_result.patient_name != 'Anonymous Patient' %}
                 <div>Patient: <strong>{{ image_result.patient_name }}</strong></div>
                 {% endif %}
@@ -1141,7 +1149,7 @@
                 {% if image_result.sex %}
                 <div>Gender: <strong>{{ image_result.sex }}</strong></div>
                 {% endif %}
-                {% if (not image_result.patient_name or image_result.patient_name == 'Anonymous Patient') and not image_result.age and not image_result.sex %}
+                {% if not image_result.patient_id and (not image_result.patient_name or image_result.patient_name == 'Anonymous Patient') and not image_result.age and not image_result.sex %}
                 <div>Assessment: <strong>Conjunctival Pallor Analysis</strong></div>
                 {% endif %}
             </div>

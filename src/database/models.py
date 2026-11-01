@@ -47,11 +47,55 @@ class User(db.Model):
         }
 
 
+class Patient(db.Model):
+    """Patient entity representing a tracked individual over multiple longitudinal screenings."""
+    __tablename__ = "patients"
+
+    id = db.Column(db.String(50), primary_key=True)  # e.g., "PID-1001"
+    name = db.Column(db.String(120), nullable=False, index=True)
+    age = db.Column(db.Integer, nullable=True)
+    gender = db.Column(db.String(20), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utc_now)
+    updated_at = db.Column(db.DateTime, nullable=False, default=utc_now, onupdate=utc_now)
+
+    screenings = db.relationship(
+        "ScreeningHistory",
+        backref=db.backref("patient_profile", lazy="joined"),
+        lazy="select",
+        cascade="all, delete-orphan",
+        order_by="ScreeningHistory.created_at.asc()",
+    )
+
+    @property
+    def screening_count(self) -> int:
+        return len(self.screenings)
+
+    @property
+    def latest_screening(self):
+        return self.screenings[-1] if self.screenings else None
+
+    @property
+    def previous_screening(self):
+        return self.screenings[-2] if len(self.screenings) >= 2 else None
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "age": self.age,
+            "gender": self.gender,
+            "screening_count": self.screening_count,
+            "created_at": self.created_at.strftime("%Y-%m-%d %H:%M:%S") if self.created_at else None,
+            "updated_at": self.updated_at.strftime("%Y-%m-%d %H:%M:%S") if self.updated_at else None,
+        }
+
+
 class ScreeningHistory(db.Model):
     """Historical record of an AI conjunctival screening assessment."""
     __tablename__ = "screening_history"
 
     id = db.Column(db.BigInteger().with_variant(db.Integer, "sqlite"), primary_key=True, autoincrement=True)
+    patient_id = db.Column(db.String(50), db.ForeignKey("patients.id", ondelete="SET NULL"), nullable=True, index=True)
     patient_name = db.Column(db.String(120), nullable=True, default="Anonymous Patient", index=True)
     patient_age = db.Column(db.Integer, nullable=True)
     patient_gender = db.Column(db.String(20), nullable=True)
@@ -68,6 +112,10 @@ class ScreeningHistory(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=utc_now, index=True)
 
     @property
+    def display_patient_id(self) -> str:
+        return self.patient_id or (f"PID-{1000 + self.id}" if self.id else "PID-UNKNOWN")
+
+    @property
     def is_anemic(self) -> bool:
         return self.prediction.lower().startswith("anemic") or self.confidence_score >= self.threshold
 
@@ -82,6 +130,7 @@ class ScreeningHistory(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "patient_id": self.display_patient_id,
             "patient_name": self.patient_name or "Anonymous Patient",
             "patient_age": self.patient_age,
             "patient_gender": self.patient_gender,

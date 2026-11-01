@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Screening Record #{{ screening.id if screening else '' }} — ANEMEIA Healthcare Portal</title>
+    <title>Patient Progress & Screening Details — ANEMEIA Healthcare Portal</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary-teal: #0F766E;
@@ -59,7 +60,7 @@
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 16px;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
             box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
         }
 
@@ -96,28 +97,6 @@
             color: var(--primary-teal);
         }
 
-        .nav-user-badge {
-            font-size: 13px;
-            font-weight: 700;
-            background: var(--primary-teal-subtle);
-            color: var(--primary-teal);
-            padding: 6px 14px;
-            border-radius: 999px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .nav-btn-outline {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--muted-text);
-            border: 1px solid var(--border-color);
-            padding: 6px 14px;
-            border-radius: 999px;
-            text-decoration: none;
-        }
-
         /* TOP ACTION BAR */
         .action-bar {
             display: flex;
@@ -125,7 +104,14 @@
             justify-content: space-between;
             margin-bottom: 24px;
             flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .action-left {
+            display: flex;
+            align-items: center;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .btn-back {
@@ -136,7 +122,7 @@
             font-weight: 700;
             color: var(--primary-teal);
             text-decoration: none;
-            padding: 8px 16px;
+            padding: 9px 18px;
             background: #FFFFFF;
             border: 1px solid var(--border-color);
             border-radius: 10px;
@@ -148,7 +134,42 @@
             background: var(--primary-teal-subtle);
         }
 
-        /* CARD */
+        .patient-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary-teal-subtle);
+            color: var(--primary-teal);
+            border: 1px solid rgba(15, 118, 110, 0.25);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .btn-download-pdf {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-teal);
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(15, 118, 110, 0.25);
+        }
+
+        .btn-download-pdf:hover {
+            background: var(--primary-teal-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(15, 118, 110, 0.35);
+        }
+
+        /* MEDICAL CARD */
         .medical-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -199,6 +220,7 @@
         .patient-demographics {
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
             gap: 20px;
             font-size: 14px;
             color: var(--heading-color);
@@ -211,7 +233,7 @@
             padding: 8px 18px;
             border-radius: 999px;
             font-family: 'Outfit', sans-serif;
-            font-size: 15px;
+            font-size: 14.5px;
             font-weight: 700;
         }
 
@@ -231,7 +253,7 @@
         .metric-hero {
             display: flex;
             align-items: baseline;
-            gap: 12px;
+            gap: 14px;
             margin-bottom: 12px;
         }
 
@@ -286,7 +308,244 @@
             background: linear-gradient(90deg, #34D399, var(--success-green));
         }
 
-        /* 4-PANEL PREVIEW GRID */
+        /* -------------------------------------------------- */
+        /* LONGITUDINAL PROGRESS COMPARISON SECTION           */
+        /* -------------------------------------------------- */
+        .progress-comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .comparison-card {
+            background: #F8FBFC;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .comparison-card:hover {
+            border-color: rgba(15, 118, 110, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(22, 50, 79, 0.05);
+        }
+
+        .comparison-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--muted-text);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .comparison-val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--heading-color);
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .comparison-sub {
+            font-size: 11.5px;
+            color: var(--muted-text);
+        }
+
+        /* TREND BADGES */
+        .trend-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13.5px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+            margin-top: 4px;
+        }
+
+        .trend-pill.trend-decreased {
+            background: var(--success-bg);
+            color: var(--success-green);
+            border: 1px solid var(--success-border);
+        }
+
+        .trend-pill.trend-increased {
+            background: var(--danger-bg);
+            color: var(--danger-red);
+            border: 1px solid var(--danger-border);
+        }
+
+        .trend-pill.trend-unchanged {
+            background: #F1F5F9;
+            color: #64748B;
+            border: 1px solid #CBD5E1;
+        }
+
+        .trend-pill.trend-baseline {
+            background: var(--primary-teal-subtle);
+            color: var(--primary-teal);
+            border: 1px solid rgba(15, 118, 110, 0.3);
+        }
+
+        /* CHART CONTAINER */
+        .chart-wrapper {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .chart-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--heading-color);
+        }
+
+        .chart-legend-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted-text);
+        }
+
+        .legend-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        .chart-canvas-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+        }
+
+        /* CLINICAL TREND NOTE */
+        .clinical-trend-note {
+            background: var(--primary-teal-subtle);
+            border: 1px solid rgba(15, 118, 110, 0.25);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 12.5px;
+            color: var(--heading-color);
+            line-height: 1.5;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        /* -------------------------------------------------- */
+        /* SCREENING HISTORY TIMELINE TABLE                   */
+        /* -------------------------------------------------- */
+        .timeline-table-wrap {
+            overflow-x: auto;
+            margin-bottom: 28px;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+        }
+
+        .timeline-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            text-align: left;
+            background: #FFFFFF;
+        }
+
+        .timeline-table th {
+            background: #F8FAFC;
+            color: var(--muted-text);
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .timeline-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .timeline-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .timeline-table tr.active-row {
+            background: #F0FDF4;
+        }
+
+        .timeline-table tr:hover {
+            background: #F8FBFC;
+        }
+
+        .timeline-table tr.active-row:hover {
+            background: #ECFDF5;
+        }
+
+        .active-tag {
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--success-bg);
+            color: var(--success-green);
+            border: 1px solid var(--success-border);
+            padding: 2px 8px;
+            border-radius: 999px;
+            margin-left: 6px;
+        }
+
+        .btn-switch-visit {
+            background: #FFFFFF;
+            border: 1.5px solid var(--primary-teal);
+            color: var(--primary-teal);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-switch-visit:hover {
+            background: var(--primary-teal);
+            color: #FFFFFF;
+        }
+
+        /* -------------------------------------------------- */
+        /* 4-PANEL PREVIEW GRID                               */
+        /* -------------------------------------------------- */
         .preview-grid-4 {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -328,12 +587,12 @@
 
         /* GRAD-CAM NOTE */
         .gradcam-note {
-            background: var(--primary-teal-subtle);
-            border: 1px solid rgba(15, 118, 110, 0.2);
+            background: #FDF4FF;
+            border: 1px solid #F0ABFC;
             border-radius: 12px;
             padding: 14px 18px;
             font-size: 12.5px;
-            color: var(--heading-color);
+            color: #701A75;
             line-height: 1.5;
             margin-bottom: 24px;
         }
@@ -370,6 +629,20 @@
             color: var(--heading-color);
         }
 
+        /* BOTTOM REPORT ACTIONS */
+        .bottom-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            background: #F8FBFC;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
         /* DISCLAIMER */
         .disclaimer-banner {
             background: #F0FDF4;
@@ -394,10 +667,22 @@
         }
 
         @media (max-width: 900px) {
+            .progress-comparison-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
             .preview-grid-4 {
                 grid-template-columns: repeat(2, 1fr);
             }
             .diag-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .progress-comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .preview-grid-4 {
                 grid-template-columns: 1fr;
             }
         }
@@ -422,12 +707,25 @@
 
     <!-- ACTION BAR -->
     <div class="action-bar">
-        <a href="/history" class="btn-back">
-            <span>&larr;</span> Back to Screening History
-        </a>
-        <div style="font-size: 13px; color: var(--muted-text);">
-            Screening Record: <strong>#{{ screening.id if screening else '' }}</strong>
+        <div class="action-left">
+            <a href="/history" class="btn-back">
+                <span>&larr;</span> Back to History
+            </a>
+            {% if patient and patient.id %}
+            <div class="patient-badge">
+                <span>👤</span> Patient ID: <strong>{{ patient.id }}</strong>
+            </div>
+            {% endif %}
+            <div style="font-size: 13px; color: var(--muted-text);">
+                Visit Record: <strong>#{{ screening.id if screening else '' }}</strong>
+            </div>
         </div>
+
+        {% if screening %}
+        <a href="/history/{{ screening.id }}/report.pdf" class="btn-download-pdf">
+            <span>📄</span> Download Patient Progress Report (PDF)
+        </a>
+        {% endif %}
     </div>
 
     {% if error or not screening %}
@@ -440,16 +738,227 @@
     </div>
     {% else %}
 
-    <!-- SCREENING DETAILS CARD -->
+    <!-- ================================================== -->
+    <!-- 1. PATIENT ANEMIA PROGRESS TRACKING SECTION         -->
+    <!-- ================================================== -->
+    {% if progress %}
     <div class="medical-card">
         <div class="section-heading">
-            <span>📊</span> Screening Record Details
-            <span class="badge-tag">Audit ID #{{ screening.id }}</span>
+            <span>📈</span> Patient Anemia Progress Tracking
+            <span class="badge-tag">Longitudinal AI Monitor</span>
+        </div>
+
+        <!-- PROGRESS COMPARISON METRICS (PREVIOUS VS CURRENT) -->
+        <div class="progress-comparison-grid">
+            <!-- 1. Previous Risk Score -->
+            <div class="comparison-card">
+                <div class="comparison-label">
+                    <span>Previous Score</span>
+                    <span>⏮️</span>
+                </div>
+                <div class="comparison-val">
+                    {% if progress.previous_score is not none %}
+                    {{ "%.1f"|format(progress.previous_score) }}%
+                    {% else %}
+                    <span style="font-size: 18px; color: var(--muted-text);">Baseline</span>
+                    {% endif %}
+                </div>
+                <div class="comparison-sub">
+                    {% if progress.previous_screening %}
+                    {{ progress.previous_screening.created_at.strftime("%b %d, %Y") if progress.previous_screening.created_at else 'Prior assessment' }}
+                    {% else %}
+                    Initial recorded screening
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 2. Current Risk Score -->
+            <div class="comparison-card">
+                <div class="comparison-label">
+                    <span>Current Score</span>
+                    <span>⏱️</span>
+                </div>
+                <div class="comparison-val" style="color: var(--primary-teal);">
+                    {{ "%.1f"|format(progress.current_score) }}%
+                </div>
+                <div class="comparison-sub">
+                    Cutoff: &ge; {{ "%.1f"|format(progress.chart_data.threshold) }}% ({{ screening.prediction }})
+                </div>
+            </div>
+
+            <!-- 3. Difference in Percentage Points -->
+            <div class="comparison-card">
+                <div class="comparison-label">
+                    <span>Score Difference</span>
+                    <span>📊</span>
+                </div>
+                <div class="comparison-val">
+                    {% if progress.diff_points is not none %}
+                        {% if progress.diff_points < 0 %}
+                        <span style="color: var(--success-green);">&minus;{{ "%.1f"|format(progress.diff_points|abs) }} pts</span>
+                        {% elif progress.diff_points > 0 %}
+                        <span style="color: var(--danger-red);">+{{ "%.1f"|format(progress.diff_points) }} pts</span>
+                        {% else %}
+                        <span style="color: var(--muted-text);">0.0 pts</span>
+                        {% endif %}
+                    {% else %}
+                    <span style="font-size: 18px; color: var(--muted-text);">0.0 pts</span>
+                    {% endif %}
+                </div>
+                <div class="comparison-sub">
+                    {% if progress.diff_points is not none %}
+                    Change from last visit
+                    {% else %}
+                    First screening on record
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 4. Trend Status -->
+            <div class="comparison-card">
+                <div class="comparison-label">
+                    <span>Trend Status</span>
+                    <span>{{ progress.trend_icon }}</span>
+                </div>
+                <div>
+                    <span class="trend-pill {{ progress.trend_badge_class }}">
+                        {{ progress.trend_icon }} {{ progress.trend_status }}
+                    </span>
+                </div>
+                <div class="comparison-sub" style="margin-top: 6px;">
+                    {{ progress.trend_description }}
+                </div>
+            </div>
+        </div>
+
+        <!-- PROGRESS GRAPH (LINE CHART) -->
+        <div class="chart-wrapper">
+            <div class="chart-header">
+                <div>
+                    <div class="chart-title">Longitudinal Risk Score Trajectory</div>
+                    <div style="font-size: 12px; color: var(--muted-text); margin-top: 2px;">
+                        Patient: <strong>{{ patient.name }}</strong> ({{ patient.id }}) &bull; {{ progress.total_screenings }} total screenings recorded
+                    </div>
+                </div>
+                <div class="chart-legend-box">
+                    <div>
+                        <span class="legend-indicator" style="background: #0F766E;"></span> Model Risk Score (%)
+                    </div>
+                    <div>
+                        <span class="legend-indicator" style="background: #D97706; border-top: 2px dashed #D97706;"></span> Decision Cutoff ({{ "%.1f"|format(progress.chart_data.threshold) }}%)
+                    </div>
+                </div>
+            </div>
+            <div class="chart-canvas-container">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+
+        <!-- CLINICAL TREND NOTE -->
+        <div class="clinical-trend-note">
+            <span style="font-size: 18px;">ℹ️</span>
+            <div>
+                <strong>Clinical Trend Notice:</strong> Progress metrics reflect model-predicted screening risk scores over time and should be interpreted alongside clinical laboratory evaluation (e.g., complete blood count, serum ferritin, and hemoglobin testing).
+            </div>
+        </div>
+
+        <!-- SCREENING HISTORY TIMELINE -->
+        <div class="section-heading" style="margin-top: 10px; font-size: 17px;">
+            <span>🗓️</span> Patient Screening History Timeline
+            <span class="badge-tag">{{ timeline|length }} Visits</span>
+        </div>
+
+        <div class="timeline-table-wrap">
+            <table class="timeline-table">
+                <thead>
+                    <tr>
+                        <th>Visit #</th>
+                        <th>Screening ID</th>
+                        <th>Screening Date & Time</th>
+                        <th>Predicted Result</th>
+                        <th>Risk Score</th>
+                        <th>Tissue Quality</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in timeline %}
+                    <tr class="{% if item.is_active %}active-row{% endif %}">
+                        <td>
+                            <strong>#{{ loop.index }}</strong>
+                            {% if item.is_active %}
+                            <span class="active-tag">Active View</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span style="font-family: monospace; font-weight: 700; color: var(--primary-teal);">
+                                SCR-{{ item.id }}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; color: var(--heading-color);">
+                                {{ item.date_formatted }}
+                            </div>
+                            <div style="font-size: 11.5px; color: var(--muted-text);">
+                                {{ item.time_formatted }}
+                            </div>
+                        </td>
+                        <td>
+                            {% if item.is_anemic %}
+                            <span class="status-pill anemic" style="font-size: 12px; padding: 3px 10px;">
+                                🔴 Anemia Detected
+                            </span>
+                            {% else %}
+                            <span class="status-pill normal" style="font-size: 12px; padding: 3px 10px;">
+                                🟢 Non-Anemic
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="font-weight: 700; color: var(--heading-color);">
+                                {{ "%.1f"|format(item.confidence_percentage) }}%
+                            </div>
+                            <div style="font-size: 11px; color: var(--muted-text);">
+                                Cutoff: &ge; {{ "%.1f"|format(item.threshold_percentage) }}%
+                            </div>
+                        </td>
+                        <td>
+                            <span style="font-size: 12px; font-weight: 600; color: var(--success-green); text-transform: capitalize;">
+                                {{ item.tissue_quality }}
+                            </span>
+                        </td>
+                        <td style="text-align: right;">
+                            {% if item.is_active %}
+                            <span style="font-size: 12px; font-weight: 700; color: var(--primary-teal);">Current Audit</span>
+                            {% else %}
+                            <a href="/history/{{ item.id }}" class="btn-switch-visit">
+                                <span>🔍</span> View Visual Audit
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ================================================== -->
+    <!-- 2. SELECTED VISIT CLINICAL AUDIT & VISUAL DETAILS   -->
+    <!-- ================================================== -->
+    <div class="medical-card">
+        <div class="section-heading">
+            <span>🔬</span> Selected Visit Visual Audit (Screening #{{ screening.id }})
+            <span class="badge-tag">4-Panel Explainability</span>
         </div>
 
         <!-- DEMOGRAPHICS & STATUS BANNER -->
         <div class="results-header-banner">
             <div class="patient-demographics">
+                {% if patient and patient.id %}
+                <div>Patient ID: <strong style="color: var(--primary-teal);">{{ patient.id }}</strong></div>
+                {% endif %}
                 <div>Patient: <strong>{{ screening.patient_name or 'Anonymous Patient' }}</strong></div>
                 {% if screening.patient_age %}
                 <div>Age: <strong>{{ screening.patient_age }}</strong> yrs</div>
@@ -560,9 +1069,132 @@
                 <strong>Medical Notice:</strong> This application provides preliminary AI-based screening support and general nutritional information. It is not a medical diagnosis and cannot replace laboratory hemoglobin testing or professional medical advice.
             </div>
         </div>
+
+        <!-- BOTTOM ACTIONS -->
+        <div class="bottom-actions">
+            <div>
+                <strong style="color: var(--heading-color);">Export Audit Dossier:</strong>
+                <p style="font-size: 12px; color: var(--muted-text); margin-top: 2px;">
+                    Generate a PDF containing patient demographics, longitudinal progress graph, and full screening history.
+                </p>
+            </div>
+            <a href="/history/{{ screening.id }}/report.pdf" class="btn-download-pdf">
+                <span>📄</span> Download Patient Progress Report (PDF)
+            </a>
+        </div>
     </div>
     {% endif %}
 </div>
+
+{% if chart_data and chart_data.labels %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById("progressChart");
+        if (!ctx) return;
+
+        const labels = {{ chart_data.labels|tojson }};
+        const scores = {{ chart_data.scores|tojson }};
+        const tooltips = {{ chart_data.tooltips|tojson }};
+        const threshold = {{ chart_data.threshold }};
+
+        // Create horizontal threshold line plugin
+        const thresholdLinePlugin = {
+            id: 'thresholdLine',
+            afterDraw(chart) {
+                const { ctx, chartArea: { left, right }, scales: { y } } = chart;
+                if (!y) return;
+                const yVal = y.getPixelForValue(threshold);
+
+                ctx.save();
+                ctx.strokeStyle = '#D97706';
+                ctx.lineWidth = 1.8;
+                ctx.setLineDash([6, 6]);
+                ctx.beginPath();
+                ctx.moveTo(left, yVal);
+                ctx.lineTo(right, yVal);
+                ctx.stroke();
+
+                // Add label at the right
+                ctx.fillStyle = '#D97706';
+                ctx.font = 'bold 11px Outfit, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(`Cutoff: ${threshold.toFixed(1)}%`, right - 8, yVal - 6);
+                ctx.restore();
+            }
+        };
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Model Predicted Risk Score (%)',
+                    data: scores,
+                    borderColor: '#0F766E',
+                    backgroundColor: 'rgba(15, 118, 110, 0.12)',
+                    borderWidth: 3,
+                    pointBackgroundColor: scores.map(s => s >= threshold ? '#DC2626' : '#059669'),
+                    pointBorderColor: '#FFFFFF',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    tension: 0.35,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#0F172A',
+                        titleFont: { family: 'Outfit', size: 12, weight: 'bold' },
+                        bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+                        padding: 10,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                const idx = context.dataIndex;
+                                return tooltips[idx] || `Risk Score: ${context.parsed.y.toFixed(1)}%`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: '#F1F5F9'
+                        },
+                        ticks: {
+                            font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' },
+                            color: '#64748B'
+                        }
+                    },
+                    y: {
+                        min: 0,
+                        max: 100,
+                        grid: {
+                            color: '#F1F5F9'
+                        },
+                        ticks: {
+                            stepSize: 20,
+                            callback: function(value) {
+                                return value + '%';
+                            },
+                            font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' },
+                            color: '#64748B'
+                        }
+                    }
+                }
+            },
+            plugins: [thresholdLinePlugin]
+        });
+    });
+</script>
+{% endif %}
 
 </body>
 </html>
