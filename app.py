@@ -1,16 +1,30 @@
+import os
+import random
 import sys
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(line_buffering=True)
 
+# --------------------------------------------------
+# Deterministic Inference Environment Configuration
+# --------------------------------------------------
+os.environ["PYTHONHASHSEED"] = "42"
+os.environ["TF_DETERMINISTIC_OPS"] = "1"
+random.seed(42)
+
 import base64
+import hashlib
 import io
 import json
-import os
 import uuid
 
 import cv2
 import numpy as np
+np.random.seed(42)
+
 import tensorflow as tf
+tf.random.set_seed(42)
+
 from flask import (
     Flask,
     render_template,
@@ -27,6 +41,7 @@ from werkzeug.utils import secure_filename
 from src.roi.extract import extract_roi
 from src.segmentation.predict import predict_mask
 from src.explainability.gradcam import GradCAMExplainer
+from src.classification.model import build_inference_classifier
 from src.database import (
     db,
     init_db,
@@ -118,8 +133,10 @@ else:
     print("Loading U-Net Keras model...")
     unet = tf.keras.models.load_model(UNET_PATH, compile=False)
 
-print("Loading EfficientNetB0 classifier...")
-classifier = tf.keras.models.load_model(CLASSIFIER_PATH, compile=False)
+print("Loading EfficientNetB0 classifier checkpoint...")
+raw_classifier = tf.keras.models.load_model(CLASSIFIER_PATH, compile=False)
+print("Configuring deterministic inference classifier (bypassing training-only data augmentation)...")
+classifier = build_inference_classifier(raw_classifier)
 
 print("Initializing Grad-CAM Explainer...")
 explainer = GradCAMExplainer(classifier)
@@ -233,9 +250,9 @@ def prepare_roi_for_classifier(roi):
     if len(roi.shape) != 3 or roi.shape[2] != 3:
         raise ValueError("The extracted ROI must have 3 color channels.")
 
-    # Convert BGR to RGB
+    # Convert BGR to RGB with deterministic area interpolation
     roi_rgb = cv2.cvtColor(roi, cv2.COLOR_BGR2RGB)
-    roi_resized = cv2.resize(roi_rgb, (224, 224))
+    roi_resized = cv2.resize(roi_rgb, (224, 224), interpolation=cv2.INTER_AREA)
     roi_float = roi_resized.astype(np.float32)
 
     return np.expand_dims(roi_float, axis=0)
@@ -344,7 +361,7 @@ def index():
             roi_batch = prepare_roi_for_classifier(roi)
             prediction = classifier.predict(roi_batch, verbose=0)
             image_score = float(np.asarray(prediction).reshape(-1)[0])
-            print(f"[AI Pipeline 3/4] Classification done in {time.time() - t_cls:.2f}s. Score: {image_score:.4f}")
+            print(f"[AI Pipeline 3/4] Classification done in {time.time() - t_cls:.2f}s. Score: {image_score:.6f}")
 
             is_anemic = image_score >= CLASSIFIER_THRESHOLD
             image_result = {
@@ -370,6 +387,19 @@ def index():
                 "age": age if age else None,
                 "sex": sex.capitalize() if sex else None,
             }
+
+            # Detailed debugging logs for reproducibility and audit trail
+            image_md5 = hashlib.md5(image.tobytes()).hexdigest()[:10]
+            mask_sum = int(binary_mask.sum()) if binary_mask is not None else 0
+            mask_md5 = hashlib.md5(binary_mask.tobytes()).hexdigest()[:10] if binary_mask is not None else "None"
+            roi_md5 = hashlib.md5(roi.tobytes()).hexdigest()[:10] if roi is not None else "None"
+
+            print(f"[Determinism Audit] Raw Upload Dimensions: {h_orig}x{w_orig}x3")
+            print(f"[Determinism Audit] Preprocessed Image Dimensions: {image.shape[0]}x{image.shape[1]}x{image.shape[2]}, Mean: {image.mean():.4f}, MD5: {image_md5}")
+            print(f"[Determinism Audit] U-Net Mask Output: Foreground Pixels={mask_sum}, MD5: {mask_md5}")
+            print(f"[Determinism Audit] Extracted ROI: Dimensions={roi.shape[0]}x{roi.shape[1]}x{roi.shape[2]}, Bounding Box={bbox}, MD5: {roi_md5}")
+            print(f"[Determinism Audit] EfficientNet Prediction Score: {image_score:.6f} ({image_score * 100.0:.2f}%) [Cutoff: {CLASSIFIER_THRESHOLD:.4f}]")
+            print(f"[Determinism Audit] Final Classification Result: {image_result['classification']}")
 
             # Step 4: Generate Grad-CAM explainability
             print("[AI Pipeline 4/4] Generating Grad-CAM explainability heatmap...")

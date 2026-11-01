@@ -37,7 +37,9 @@ def run_evaluation(
         raise FileNotFoundError(f"Classifier checkpoint not found at: {classifier_path}")
 
     print(f"Loading classifier from {classifier_path}...")
-    model = tf.keras.models.load_model(classifier_path, compile=False)
+    raw_model = tf.keras.models.load_model(classifier_path, compile=False)
+    from src.classification.model import build_inference_classifier
+    model = build_inference_classifier(raw_model)
 
     threshold = 0.3837
     if Path(threshold_config_path).exists():
